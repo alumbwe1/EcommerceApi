@@ -1,5 +1,5 @@
 
-from . models import Cart,Product
+from . models import Cart,Product,Addon
 from . import serializers
 from rest_framework import viewsets # type: ignore
 from rest_framework.permissions import IsAuthenticated # type: ignore
@@ -8,36 +8,55 @@ from rest_framework import status,generics # type: ignore
 from rest_framework.response import Response # type: ignore
 from rest_framework.views import APIView # type: ignore
 
-class AddItemToCart(APIView): 
+
+
+class AddItemToCart(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         user = request.user
         data = request.data
 
+        # Retrieve the product
         try:
             product = Product.objects.get(id=data['product'])
         except Product.DoesNotExist:
             return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        try:
-            cart_item = Cart.objects.get(
-                user=user,
-                product=product,
-                size = data['size'],
-                color = data['color'],
-                quantity=data['quantity']
-                )
-            cart_item.quantity += data.get('quantity',1)
-            cart_item.save()
-            return Response({'message': 'Product cart updated'}, status=status.HTTP_200_OK)
-        except Cart.DoesNotExist:
-            Cart.objects.create(
-                user=user,
-                product=product,
-                quantity=data.get('quantity',1),
-                )   
-            return Response({'message': 'Product added to cart'}, status=status.HTTP_201_CREATED)
+        # Retrieve add-ons (list of IDs or names)
+        addon_input = data.get('addons', [])  # Can be list of IDs or names
+
+        if addon_input:
+            if isinstance(addon_input[0], int):  # If list contains IDs
+                addons = Addon.objects.filter(id__in=addon_input)
+            else:  # If list contains names
+                addons = Addon.objects.filter(name__in=addon_input)
+        else:
+            addons = []
+
+        # Retrieve quantity
+        quantity = data.get('quantity', 1)
+
+        # Check if cart item exists
+        cart_item, created = Cart.objects.get_or_create(
+            user=user,
+            product=product,
+            defaults={'quantity': quantity}  # Default values if creating new
+        )
+
+        if not created:
+            # Update quantity if cart item already exists
+            cart_item.quantity += quantity
+
+        # Update add-ons
+        cart_item.save()  # Save first to ensure it has an ID before setting ManyToMany
+        cart_item.addons.set(addons)  # Set ManyToMany relationship
+
+        return Response(
+            {'message': 'Product added to cart' if created else 'Cart updated'},
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        )
+
 
 class DeleteCartItem(APIView):
     permission_classes = [IsAuthenticated]
@@ -49,7 +68,7 @@ class DeleteCartItem(APIView):
         if not cart_item_id:
             return Response({'error': 'id parameter is required.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Try to convert id to an integer if it's expected to be numeric
+        # Try's to convert id to an integer if it's expected to be numeric
         try:
             cart_item_id = int(cart_item_id)
         except ValueError:

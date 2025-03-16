@@ -8,14 +8,14 @@ class CategorySerializer(serializers.ModelSerializer):
     
     class Meta:
         model = models.Category
-        fields = ['id','title','imageUrl']
+        fields = '__all__'
 
 class BrandSerializer(serializers.ModelSerializer):
     """Serializer for retrieving brand information."""
     
     class Meta:
         model = models.Brand
-        fields = ['id','title','imageUrl']
+        fields = '__all__'
 
 class ProductSerializer(serializers.ModelSerializer):
     """Serializer for retrieving product information."""
@@ -39,3 +39,9 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         product = models.Product.objects.create(**validated_data)
         return product
 
+class DeliveryBoySerializer(serializers.ModelSerializer):
+    """Serializer for retrieving and creating delivery boy information."""
+    
+    class Meta:
+        model = models.DeliveryBoy
+        fields = ['id', 'name', 'phone_number', 'profile_pic', 'vehicle_type', 'is_available']

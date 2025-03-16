@@ -3,12 +3,13 @@ from . import models
 from posts.serializers import ProductSerializer
 
 class CartSerializer(serializers.ModelSerializer):
-    product = ProductSerializer(read_only=True)  # Use 'product' instead of 'products'
+    product = ProductSerializer(read_only=True)  
 
     class Meta:
         model = models.Cart
-        exclude = ['created_at', 'updated_at']  # Exclude fields as needed
+        #No need for these bullshit
+        exclude = ['created_at', 'updated_at']  
 
     def create(self, validated_data):
-        # Here we can add custom logic if needed when creating a Cart instance
+        # Some other logic if needed
         return super().create(validated_data)

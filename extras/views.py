@@ -7,11 +7,9 @@ from django.conf import settings
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-import stripe
 from django.conf import settings
 # Create your views here.
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
 
 class AddAdress(APIView):
     permission_classes = [IsAuthenticated]
@@ -116,21 +114,3 @@ class SetDefaultAddress(APIView):
         except models.Address.DoesNotExist:
             return Response({'message': 'Address does not exist'}, status=status.HTTP_404_NOT_FOUND)
       
-class CreatePaymentIntent(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        try:
-            # Amount should be in cents (e.g., $10.00 should be 1000)
-            amount = int(request.data.get('amount', 0))
-
-            # Create a PaymentIntent with the amount
-            intent = stripe.PaymentIntent.create(
-                amount=amount,
-                currency='usd',  # Change to your currency
-                payment_method_types=['card']
-            )
-
-            return JsonResponse({'clientSecret': intent['client_secret']})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
