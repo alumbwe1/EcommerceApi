@@ -14,7 +14,7 @@ class Category(models.Model):
 
 def get_default_user():
     return User.objects.first().id if User.objects.exists() else None
-
+#   Expected JSON FORMAT
 #Addon Model e,g in JSON format: {'Water': 5.00, 'Extra Cheese': 2.50}
 class Addon(models.Model):
     name = models.CharField(max_length=255,unique=True)
@@ -77,14 +77,14 @@ class Product(models.Model):
     def __str__(self):
         return self.title
 
-# DeliveryBoy model
+
 class DeliveryBoy(models.Model):
-    restaurant = models.ForeignKey(Brand, on_delete=models.CASCADE,blank=True,default=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE,null=True)
     name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=15, unique=True)
     profile_pic = models.ImageField(upload_to='delivery_boy_pics/', blank=True)
     vehicle_type = models.CharField(max_length=100, choices=[('bike', 'Bike'), ('car', 'Car'),('walk','Walk')], default='bike')
-    is_available = models.BooleanField(default=True)
+
 
     def __str__(self):
         return self.name

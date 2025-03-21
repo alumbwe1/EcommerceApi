@@ -19,6 +19,7 @@ class BrandSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     """Serializer for retrieving product information."""
+    brand = BrandSerializer(read_only=True)  
     
     class Meta:
         model = models.Product
@@ -38,10 +39,24 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         # Directly create the product with the image
         product = models.Product.objects.create(**validated_data)
         return product
+    
+class BrandCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating a new product."""
+
+  
+
+    class Meta:
+        model = models.Brand
+        fields = '__all__'
+        read_only_fields = ['owner']  
+
+   
 
 class DeliveryBoySerializer(serializers.ModelSerializer):
     """Serializer for retrieving and creating delivery boy information."""
     
     class Meta:
         model = models.DeliveryBoy
-        fields = ['id', 'name', 'phone_number', 'profile_pic', 'vehicle_type', 'is_available']
+        fields = '__all'
+        read_only_field = ['user']
+        

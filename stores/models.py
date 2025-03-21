@@ -3,7 +3,7 @@ from django.db import models
 
 from django.db import models
 from django.contrib.auth.models import User
-
+from posts import models
 class Store(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255, unique=True)
@@ -12,7 +12,7 @@ class Store(models.Model):
     address = models.CharField(max_length=255, blank=True)
     phone = models.CharField(max_length=15, blank=True)
     email = models.EmailField(blank=True)
-    campus = models.CharField(max_length=150, blank=True)  
+    campus = models.ForeignKey(models.Campus, blank=True)  
     is_verified = models.BooleanField(default=False)  
 
     def __str__(self):
@@ -20,18 +20,18 @@ class Store(models.Model):
     
 
 
-class ProductCategory(models.Model):
+class StoreProductCategory(models.Model):
     title = models.CharField(max_length=100, unique=True)
-    image = models.ImageField(upload_to='category_images/', blank=True, null=True)  # optional
+    image = models.ImageField(upload_to='stores_category_images/', blank=True, null=True)  # optional
 
     def __str__(self):
         return self.title
     
-class Product(models.Model):
+class StoreProduct(models.Model):
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='products')
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    category = models.ForeignKey(ProductCategory, on_delete=models.SET_NULL, null=True, related_name='products')
+    category = models.ForeignKey(StoreProductCategory, on_delete=models.SET_NULL, null=True, related_name='products')
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.IntegerField(default=0)
     image = models.ImageField(upload_to='product_images/', blank=True, null=True)

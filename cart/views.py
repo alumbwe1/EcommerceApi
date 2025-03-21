@@ -17,45 +17,57 @@ class AddItemToCart(APIView):
         user = request.user
         data = request.data
 
-        # Retrieve the product
+        # 1. Get Product
         try:
             product = Product.objects.get(id=data['product'])
         except Product.DoesNotExist:
             return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Retrieve add-ons (list of IDs or names)
-        addon_input = data.get('addons', [])  # Can be list of IDs or names
-
+        # 2. Retrieve Addons
+        addon_input = data.get('addons', [])
         if addon_input:
-            if isinstance(addon_input[0], int):  # If list contains IDs
+            if isinstance(addon_input[0], int):
                 addons = Addon.objects.filter(id__in=addon_input)
-            else:  # If list contains names
+            else:
                 addons = Addon.objects.filter(name__in=addon_input)
         else:
             addons = []
 
-        # Retrieve quantity
+        # 3. Retrieve Quantity
         quantity = data.get('quantity', 1)
 
-        # Check if cart item exists
+        # 4. Check for existing cart items
+        existing_cart_items = Cart.objects.filter(user=user)
+        if existing_cart_items.exists():
+            # Fetch restaurant of first item in cart
+            existing_brand = existing_cart_items.first().product.brand
+
+            # Check if new product's restaurant matches
+            if product.brand != existing_brand:
+                return Response({
+                    'message': 'You can only add items from the same restaurant to your cart. Please clear your cart first.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+        # 5. Check if product already exists in cart
         cart_item, created = Cart.objects.get_or_create(
             user=user,
             product=product,
-            defaults={'quantity': quantity}  # Default values if creating new
+            defaults={'quantity': quantity}
         )
 
         if not created:
-            # Update quantity if cart item already exists
+            # Update quantity if already in cart
             cart_item.quantity += quantity
 
-        # Update add-ons
-        cart_item.save()  # Save first to ensure it has an ID before setting ManyToMany
-        cart_item.addons.set(addons)  # Set ManyToMany relationship
+        # 6. Save and Set Addons
+        cart_item.save()
+        cart_item.addons.set(addons)
 
         return Response(
-            {'message': 'Product added to cart' if created else 'Cart updated'},
+            {'message': 'Product added to cart' if created else 'Quantity updated for this item'},
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
         )
+
 
 
 class DeleteCartItem(APIView):
@@ -68,7 +80,7 @@ class DeleteCartItem(APIView):
         if not cart_item_id:
             return Response({'error': 'id parameter is required.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Try's to convert id to an integer if it's expected to be numeric
+        # converts id to an integer
         try:
             cart_item_id = int(cart_item_id)
         except ValueError:
@@ -93,14 +105,14 @@ class CheckItemInCart(APIView):
 
     def get(self, request, product):
         user = request.user
-        # Correctly use the product parameter from the method argument
+        #Checks if the item is already in Cart
         in_cart = Cart.objects.filter(user=user, product__id=product).exists()
         return Response({'in_cart': in_cart}, status=status.HTTP_200_OK)
 class UpdateCartItemQuantity(APIView):
     permission_classes = [IsAuthenticated]
 
     def patch(self, request):
-        # Use query_params to access URL parameters
+        # Uses query_params to access URL parameters
         cart_item_id = request.query_params.get('id')
         count = request.query_params.get('count')
 
@@ -109,7 +121,7 @@ class UpdateCartItemQuantity(APIView):
             return Response({'error': 'Both id and count parameters are required.'}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            count = int(count)  # Convert count to an integer if it's expected to be a number
+            count = int(count) 
         except ValueError:
             return Response({'error': 'Count must be an integer.'}, status=status.HTTP_400_BAD_REQUEST)
 

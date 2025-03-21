@@ -5,14 +5,16 @@ from posts import views
 
 router = DefaultRouter()
 router.register(r'products', views.ProductViewSet)
+router.register(r'brands', views.BrandViewSet)
+router.register(r'deliveryauth', views.DeliveryBoyViewSet)
 
 urlpatterns = router.urls + [
-   
     path('categories/', views.CategoryList.as_view(), name='categories'),
     path('brand/', views.BrandList.as_view(), name='Brands'),
     path('categories/home/', views.HomeCategoryList.as_view(), name='categories'),
     path('<int:product_id>/similar/', views.SimilarProducts.as_view(), name='similar-products'),
     path('search/', views.SearchProduct.as_view(), name='search_product'),
+    path('search/brand/',views.SearchBrand.as_view(),name='search_brand'),
     path('search/<int:brand_id>/products/',views.SearchProductByBrand.as_view(), name='search_product_by_brand'),
     path('brand/<int:brand_id>/products/', views.ProductsByBrand.as_view(), name='brand-products'),
     path('category/<int:category_id>/products/', views.ProductsByCategory.as_view(), name='category-products'),
