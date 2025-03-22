@@ -57,6 +57,6 @@ class DeliveryBoySerializer(serializers.ModelSerializer):
     
     class Meta:
         model = models.DeliveryBoy
-        fields = '__all'
+        fields = '__all__'
         read_only_field = ['user']
         
