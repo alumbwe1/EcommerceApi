@@ -220,5 +220,28 @@ class DeleveryViewSet(viewsets.ModelViewSet):
         return serializer.save(user=self.request.user)
     
 
-    
+class DashboardStats(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        user_brands = models.Brand.objects.filter(owner=user)
+
+        total_products = models.Product.objects.filter(brand__in=user_brands).count()
+
+        products_per_brand = user_brands.annotate(
+            product_count=Count('products')
+        ).values('id', 'product_count')
+
+        categories_per_brand = user_brands.annotate(
+            category_count=Count('categories')
+        ).values('id', 'category_count')
+
+        return Response({
+            "total_products": total_products,
+            "products_per_brand": list(products_per_brand),
+            "categories_per_brand": list(categories_per_brand),
+        })
+
+
 

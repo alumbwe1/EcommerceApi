@@ -21,4 +21,5 @@ urlpatterns = router.urls + [
     path('brands/<int:brand_id>/categories/', views.CategoriesByBrand.as_view(), name='categories-by-brand'),
     path('categories/<int:category_id>/brands/<int:brand_id>/products/', views.ProductsByCategoryAndBrand.as_view(), name='products-by-category-and-brand'),
     path('categories/<int:category_id>/brands/', views.BrandsByCategory.as_view(), name='brands-by-category'),
+    path('dashboard/stats/', views.DashboardStats.as_view(), name='dashboard-stats'),
 ]
