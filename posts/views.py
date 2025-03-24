@@ -5,6 +5,10 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Count  
 from django.utils import timezone
 from django.db.models import Count, Sum
+from django.core.files.storage import default_storage # type: ignore
+from django.core.files.base import ContentFile # type: ignore
+from rest_framework.parsers import MultiPartParser, FormParser
+import json
 
 import random
 
@@ -246,23 +250,56 @@ class DashboardStats(APIView):
         })
 class CreateProductView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
 
-    def post(self, request):
-
-        brand = request.user.brands.first() 
-
+    def post(self, request, *args, **kwargs):
+        brand = request.user.brands.first()
         if not brand:
-            return Response({"error": "User does not have an associated brand."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "No brand associated with this user."}, status=status.HTTP_400_BAD_REQUEST)
 
-    
-        data = request.data.copy()
-        data['brand'] = brand.id 
+        # Handle image uploads
+        image_urls = []
+        if request.FILES.getlist('images'):
+            for image in request.FILES.getlist('images'):
+                if not image.name.lower().endswith(('png', 'jpg', 'jpeg')):
+                    return Response({"error": "Invalid image format - only PNG/JPG/JPEG allowed"}, status=status.HTTP_400_BAD_REQUEST)
+                if image.size > 5 * 1024 * 1024:
+                    return Response({"error": f"{image.name} exceeds 5MB size limit"}, status=status.HTTP_400_BAD_REQUEST)
 
-        
-        serializer = serializers.ProductSerializer(data=data)
+                path = default_storage.save(f'products/{brand.id}/{image.name}', ContentFile(image.read()))
+                image_urls.append(default_storage.url(path))
 
-        if serializer.is_valid():
-            product = serializer.save()  
+        if not image_urls:
+            return Response({"error": "At least one product image is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Parse JSON fields if needed
+        def parse_json_field(field):
+            value = request.data.get(field)
+            if value:
+                try:
+                    return json.loads(value)
+                except json.JSONDecodeError:
+                    return None
+            return None
+
+        # Create product
+        try:
+            product = models.Product.objects.create(
+                brand=brand,
+                title=request.data.get('title'),
+                description=request.data.get('description'),
+                price=request.data.get('price'),
+                imageUrls=image_urls,  # ✅ pass list directly
+                rating=request.data.get('rating') or 0,
+                stock=request.data.get('stock') or 0,
+                is_featured=request.data.get('is_featured') in ['true', 'True', True],
+                addons=parse_json_field('addons'),
+                category_id=request.data.get('category'),
+                ingredients=parse_json_field('ingredients'),
+                dietary_restrictions=parse_json_field('dietary_restrictions'),
+            )
+
             return Response(serializers.ProductSerializer(product).data, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

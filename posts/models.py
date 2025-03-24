@@ -33,7 +33,7 @@ class Campus(models.Model):
 
 # Brand/Restraurant model 
 class Brand(models.Model):
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, default=get_default_user)  # Default to user with ID 1
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='brands', default=get_default_user)  # Default to user with ID 1
     title = models.CharField(max_length=255, unique=True)
     campus = models.CharField(max_length=155, blank=True)
     image = models.ImageField(upload_to='brand_images/', blank=False)  
@@ -66,7 +66,7 @@ class Product(models.Model):
     ingredients = models.JSONField(blank=True, null=True)  
     # Dietary restrictions (e.g., vegan, gluten-free)
     dietary_restrictions = models.JSONField(blank=True, null=True)  
-    imageUrls = models.JSONField(blank=True)
+    imageUrls = models.JSONField(blank=True,default=list)
     created_at = models.DateTimeField(default=timezone.now, blank=False)
     updated_at = models.DateTimeField(default=timezone.now, blank=False)
     rating = models.FloatField(default=0, blank=False)
