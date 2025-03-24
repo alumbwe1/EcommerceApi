@@ -3,7 +3,11 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 
 # Category model
+
+#But for now i stick to the admin making the admin creating the categories not the brands or restraurant
+
 class Category(models.Model):
+    #user = models.ForeignKey(User,on_delete=models.CASCADE, default=get_default_user)
     title = models.CharField(max_length=255, unique=True)
     image = models.ImageField(upload_to='category_images/', blank=False) 
     brands = models.ManyToManyField('Brand', related_name='categories', blank=True,null=True) 
@@ -11,10 +15,10 @@ class Category(models.Model):
     def __str__(self):
         return self.title
 
-
 def get_default_user():
     return User.objects.first().id if User.objects.exists() else None
-#   Expected JSON FORMAT
+
+#Expected JSON FORMAT
 #Addon Model e,g in JSON format: {'Water': 5.00, 'Extra Cheese': 2.50}
 class Addon(models.Model):
     name = models.CharField(max_length=255,unique=True)
@@ -23,7 +27,7 @@ class Addon(models.Model):
     def __str__(self):
         return f"{self.name} - K{self.price}"
     
-#Camous model e.g CBU,UNZA
+#Camous model e.g CBU,UNZA well the the brand has to choose the campus they will be working with
 class Campus(models.Model):
     name = models.CharField(max_length=255)
 
@@ -48,7 +52,9 @@ class Brand(models.Model):
     def __str__(self):
         return self.title
 
-# Product model
+# Product model should be associated with
+#  the brand,category and the brand can
+#  add addons with above json format 
 class Product(models.Model):
     title = models.CharField(max_length=100)
     addons = models.ManyToManyField(Addon, blank=True)
@@ -79,7 +85,7 @@ class Product(models.Model):
     
 
 
-
+#Delivery partner #[InFute should be a seperate]
 class DeliveryBoy(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE,null=True)
     name = models.CharField(max_length=255)

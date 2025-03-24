@@ -3,6 +3,8 @@ from rest_framework.views import APIView  # type: ignore
 from rest_framework.response import Response  
 from rest_framework.permissions import IsAuthenticated  
 from django.db.models import Count  
+from django.utils import timezone
+from django.db.models import Count, Sum
 
 import random
 
@@ -242,6 +244,25 @@ class DashboardStats(APIView):
             "products_per_brand": list(products_per_brand),
             "categories_per_brand": list(categories_per_brand),
         })
+class CreateProductView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def post(self, request):
 
+        brand = request.user.brands.first() 
 
+        if not brand:
+            return Response({"error": "User does not have an associated brand."}, status=status.HTTP_400_BAD_REQUEST)
+
+    
+        data = request.data.copy()
+        data['brand'] = brand.id 
+
+        
+        serializer = serializers.ProductSerializer(data=data)
+
+        if serializer.is_valid():
+            product = serializer.save()  
+            return Response(serializers.ProductSerializer(product).data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
