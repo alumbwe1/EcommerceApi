@@ -11,6 +11,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 import json
 
 import random
+from orders.serializers import OrderSerializer
+from orders.models import Order
 
 from . import models, serializers
 
@@ -289,7 +291,7 @@ class CreateProductView(APIView):
                 title=request.data.get('title'),
                 description=request.data.get('description'),
                 price=request.data.get('price'),
-                imageUrls=image_urls,  # ✅ pass list directly
+                imageUrls=image_urls,  # pass list directly
                 rating=request.data.get('rating') or 0,
                 stock=request.data.get('stock') or 0,
                 is_featured=request.data.get('is_featured') in ['true', 'True', True],
@@ -303,3 +305,118 @@ class CreateProductView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DeliveryBoyEarnings(APIView):
+    """API view for delivery boy earnings statistics."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            delivery_boy = models.DeliveryBoy.objects.get(user=request.user)
+        except models.DeliveryBoy.DoesNotExist:
+            return Response({"error": "No DeliveryBoy found for this user"}, status=404)
+
+        today = timezone.now().date()
+        
+        # Daily earnings
+        daily_stats = Order.objects.filter(
+            delivery_boy=delivery_boy,
+            order_status='delivered',
+            created_at__date=today
+        ).aggregate(
+            total_orders=Count('id'),
+            total_earnings=Sum('total_price')
+        )
+
+        # Weekly earnings (last 7 days)
+        week_ago = today - timezone.timedelta(days=7)
+        weekly_stats = Order.objects.filter(
+            delivery_boy=delivery_boy,
+            order_status='delivered',
+            created_at__date__gte=week_ago
+        ).aggregate(
+            total_orders=Count('id'),
+            total_earnings=Sum('total_price')
+        )
+
+        # Monthly earnings
+        month_start = today.replace(day=1)
+        monthly_stats = Order.objects.filter(
+            delivery_boy=delivery_boy,
+            order_status='delivered',
+            created_at__date__gte=month_start
+        ).aggregate(
+            total_orders=Count('id'),
+            total_earnings=Sum('total_price')
+        )
+
+        return Response({
+            'daily': {
+                'orders': daily_stats['total_orders'] or 0,
+                'earnings': float(daily_stats['total_earnings'] or 0)
+            },
+            'weekly': {
+                'orders': weekly_stats['total_orders'] or 0,
+                'earnings': float(weekly_stats['total_earnings'] or 0)
+            },
+            'monthly': {
+                'orders': monthly_stats['total_orders'] or 0,
+                'earnings': float(monthly_stats['total_earnings'] or 0)
+            }
+        })
+
+
+
+class DeliveryBoyOrders(generics.ListAPIView):
+    """API view for delivery boy's orders."""
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrderSerializer
+
+    def get_queryset(self):
+        delivery_boy = models.DeliveryBoy.objects.get(user=self.request.user)
+        status = self.request.query_params.get('status', None)
+        
+        queryset = Order.objects.filter(delivery_boy=delivery_boy)
+        
+        if status:
+            queryset = queryset.filter(order_status=status)
+            
+        return queryset.order_by('-created_at')
+
+class DeliveryBoyOrderSummary(APIView):
+    """API view for delivery boy's order summary."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        delivery_boy = models.DeliveryBoy.objects.get(user=request.user)
+        
+        # Get summary of orders by status
+        status_summary = Order.objects.filter(
+            delivery_boy=delivery_boy
+        ).values('order_status').annotate(
+            count=Count('id')
+        )
+        
+        # Calculate average delivery time for completed orders
+        completed_orders = Order.objects.filter(
+            delivery_boy=delivery_boy,
+            order_status='delivered'
+        )
+        
+        total_delivery_time = timezone.timedelta()
+        completed_count = completed_orders.count()
+        
+        for order in completed_orders:
+            if order.delivery_time:
+                delivery_time = order.delivery_time - order.created_at
+                total_delivery_time += delivery_time
+        
+        avg_delivery_time = (total_delivery_time / completed_count).total_seconds() / 60 if completed_count > 0 else 0
+        
+        return Response({
+            'status_summary': status_summary,
+            'total_orders': Order.objects.filter(delivery_boy=delivery_boy).count(),
+            'completed_orders': completed_count,
+            'average_delivery_time_minutes': round(avg_delivery_time, 2)
+        })

@@ -23,4 +23,9 @@ urlpatterns = router.urls + [
     path('categories/<int:category_id>/brands/<int:brand_id>/products/', views.ProductsByCategoryAndBrand.as_view(), name='products-by-category-and-brand'),
     path('categories/<int:category_id>/brands/', views.BrandsByCategory.as_view(), name='brands-by-category'),
     path('dashboard/stats/', views.DashboardStats.as_view(), name='dashboard-stats'),
+    
+    # Delivery boy endpoints
+    path('delivery/earnings/', views.DeliveryBoyEarnings.as_view(), name='delivery-earnings'),
+    path('delivery/orders/', views.DeliveryBoyOrders.as_view(), name='delivery-orders'),
+    path('delivery/summary/', views.DeliveryBoyOrderSummary.as_view(), name='delivery-summary'),
 ]

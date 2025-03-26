@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .models import Order, OrderItem
-from .serializers import OrderSerializer
+from .serializers import OrderSerializer, OrderItemSerializer
 from rest_framework import status
 
 class OrderStats(APIView):
@@ -36,13 +36,85 @@ class CreateOrderView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        # Deserialize the request data
-        serializer = OrderSerializer(data=request.data)
-        
+        # Validate order items
+        if not request.data.get('order_items'):
+            return Response(
+                {"error": "order_items is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Calculate total price
+        total_price = sum(
+            float(item['price']) * int(item['quantity'])
+            for item in request.data.get('order_items', [])
+        )
+
+        # Prepare order data
+        order_data = {
+            'brand_id': request.data.get('brand_id'),
+            'delivery_boy_id': request.data.get('delivery_boy_id'),
+            'total_price': total_price,
+            'payment_method': request.data.get('payment_method'),
+            'delivery_type': request.data.get('delivery_type'),
+            'delivery_location': request.data.get('delivery_location'),
+            'room_number': request.data.get('room_number'),
+            'address': request.data.get('address'),
+            'order_status': 'pending',
+            'customer': request.user.id
+        }
+
+        # Create order with items
+        serializer = OrderSerializer(
+            data=order_data,
+            context={
+                'request': request,
+                'order_items': request.data.get('order_items', [])
+            }
+        )
+
         if serializer.is_valid():
-            # Save the order
-            order = serializer.save(customer=request.user)  
-            
-            return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
-        
+            order = serializer.save()
+            return Response(
+                OrderSerializer(order).data,
+                status=status.HTTP_201_CREATED
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UpdateOrderStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id)
+            new_status = request.data.get('status')
+            
+            if new_status not in dict(Order.ORDER_STATUS_CHOICES):
+                return Response({"error": "Invalid status"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            order.order_status = new_status
+            if new_status == 'delivered':
+                order.delivery_time = timezone.now()
+                order.is_delivered = True
+            order.save()
+            
+            return Response(OrderSerializer(order).data)
+        except Order.DoesNotExist:
+            return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class OrderDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id)
+            return Response(OrderSerializer(order).data)
+        except Order.DoesNotExist:
+            return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class CustomerOrdersView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        orders = Order.objects.filter(customer=request.user).order_by('-created_at')
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
