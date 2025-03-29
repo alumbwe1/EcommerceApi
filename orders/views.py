@@ -3,7 +3,7 @@ from django.db.models import Count, Sum
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .models import Order, OrderItem
+from .models import Order, OrderItem, DeliveryBoy
 from .serializers import OrderSerializer, OrderItemSerializer
 from rest_framework import status
 
@@ -49,10 +49,13 @@ class CreateOrderView(APIView):
             for item in request.data.get('order_items', [])
         )
 
+    
+        delivery_boy = Order.objects.filter(order_status='delivered').values('delivery_boy_id').annotate(count=Count('id')).order_by('count').first()
+        delivery_boy_id = delivery_boy['delivery_boy_id'] if delivery_boy else None
+
         # Prepare order data
         order_data = {
             'brand_id': request.data.get('brand_id'),
-            'delivery_boy_id': request.data.get('delivery_boy_id'),
             'total_price': total_price,
             'payment_method': request.data.get('payment_method'),
             'delivery_type': request.data.get('delivery_type'),
@@ -60,7 +63,8 @@ class CreateOrderView(APIView):
             'room_number': request.data.get('room_number'),
             'address': request.data.get('address'),
             'order_status': 'pending',
-            'customer': request.user.id
+            'customer': request.user.id,
+            'delivery_boy_id': delivery_boy_id 
         }
 
         # Create order with items
@@ -118,3 +122,14 @@ class CustomerOrdersView(APIView):
         orders = Order.objects.filter(customer=request.user).order_by('-created_at')
         serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)
+
+class DeliveryBoyStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, delivery_boy_id):
+        # Assuming there's a field `is_online` in the DeliveryBoy model
+        try:
+            delivery_boy = DeliveryBoy.objects.get(id=delivery_boy_id)
+            return Response({"is_online": delivery_boy.is_online})
+        except DeliveryBoy.DoesNotExist:
+            return Response({"error": "Delivery boy not found"}, status=status.HTTP_404_NOT_FOUND)
