@@ -1,12 +1,12 @@
 from django.utils import timezone
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .models import Order, OrderItem, DeliveryBoy
+from .models import Order, OrderItem, DeliveryBoy,Product
 from .serializers import OrderSerializer, OrderItemSerializer
 from rest_framework import status
-
+from rest_framework.authentication import TokenAuthentication
 class OrderStats(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -33,55 +33,41 @@ class OrderStats(APIView):
         })
 
 class CreateOrderView(APIView):
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        # Validate order items
-        if not request.data.get('order_items'):
+        # Validate order items FIRST
+        order_items = request.data.get('order_items', [])
+        if not isinstance(order_items, list) or len(order_items) == 0:
             return Response(
-                {"error": "order_items is required"},
+                {"order_items": ["This field is required."]},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Calculate total price
-        total_price = sum(
-            float(item['price']) * int(item['quantity'])
-            for item in request.data.get('order_items', [])
-        )
+        # Process the request data directly
+        request.data['customer'] = request.user.id
 
-    
-        delivery_boy = Order.objects.filter(order_status='delivered').values('delivery_boy_id').annotate(count=Count('id')).order_by('count').first()
-        delivery_boy_id = delivery_boy['delivery_boy_id'] if delivery_boy else None
+        # Find the delivery boy with the least number of completed deliveries
+        delivery_boy = DeliveryBoy.objects.annotate(
+            completed_orders_count=Count('orders', filter=Q(orders__order_status='delivered'))
+        ).order_by('completed_orders_count').first()
 
-        # Prepare order data
-        order_data = {
-            'brand_id': request.data.get('brand_id'),
-            'total_price': total_price,
-            'payment_method': request.data.get('payment_method'),
-            'delivery_type': request.data.get('delivery_type'),
-            'delivery_location': request.data.get('delivery_location'),
-            'room_number': request.data.get('room_number'),
-            'address': request.data.get('address'),
-            'order_status': 'pending',
-            'customer': request.user.id,
-            'delivery_boy_id': delivery_boy_id 
-        }
+        if delivery_boy is None:
+            return Response(
+                {"error": "No delivery boys available"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        # Create order with items
-        serializer = OrderSerializer(
-            data=order_data,
-            context={
-                'request': request,
-                'order_items': request.data.get('order_items', [])
-            }
-        )
+        # Assign the selected delivery boy to the order data
+        request.data['delivery_boy'] = delivery_boy.id
+
+        # Create the order
+        serializer = OrderSerializer(data=request.data, context={'request': request})
 
         if serializer.is_valid():
-            order = serializer.save()
-            return Response(
-                OrderSerializer(order).data,
-                status=status.HTTP_201_CREATED
-            )
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UpdateOrderStatusView(APIView):
