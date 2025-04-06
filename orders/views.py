@@ -7,21 +7,42 @@ from .models import Order, OrderItem, DeliveryBoy,Product
 from .serializers import OrderSerializer, OrderItemSerializer
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
+
 class OrderStats(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         today = timezone.now().date()
+        start_of_week = today - timezone.timedelta(days=today.weekday())
+        start_of_month = today.replace(day=1)
 
-        # Calculate the number of orders by status
+        # Calculates the number of orders by status
         completed_orders_count = Order.objects.filter(order_status='delivered').count()
         cancelled_orders_count = Order.objects.filter(order_status='cancelled').count()
         pending_orders_count = Order.objects.filter(order_status='pending').count()
-
-        # Calculate total sales amount
+        
+        # Calculates total sales amount
         total_sales = Order.objects.filter(order_status='delivered').aggregate(Sum('total_price'))['total_price__sum'] or 0
+        
+        # Calculates sales for different time periods
+        today_sales = Order.objects.filter(
+            order_status='delivered',
+            created_at__date=today
+        ).aggregate(Sum('total_price'))['total_price__sum'] or 0
 
-        # Calculate the number of orders for a day
+        weekly_sales = Order.objects.filter(
+            order_status='delivered',
+            created_at__date__gte=start_of_week,
+            created_at__date__lte=today
+        ).aggregate(Sum('total_price'))['total_price__sum'] or 0
+
+        monthly_sales = Order.objects.filter(
+            order_status='delivered',
+            created_at__date__gte=start_of_month,
+            created_at__date__lte=today
+        ).aggregate(Sum('total_price'))['total_price__sum'] or 0
+
+        # Calculates the number of orders for a day
         today_orders_count = Order.objects.filter(created_at__date=today).count()
 
         return Response({
@@ -30,6 +51,9 @@ class OrderStats(APIView):
             "pending_orders": pending_orders_count,
             "total_sales": total_sales,
             "today_orders": today_orders_count,
+            "today_sales": today_sales,
+            "weekly_sales": weekly_sales,
+            "monthly_sales": monthly_sales,
         })
 
 class CreateOrderView(APIView):
@@ -37,7 +61,7 @@ class CreateOrderView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        # Validate order items FIRST
+        # Validates order items FIRST
         order_items = request.data.get('order_items', [])
         if not isinstance(order_items, list) or len(order_items) == 0:
             return Response(
@@ -59,16 +83,19 @@ class CreateOrderView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Assign the selected delivery boy to the order data
-        request.data['delivery_boy'] = delivery_boy.id
+        # Assigns the selected delivery boy to the order data
+        request.data['delivery_boy_id'] = delivery_boy.id
 
-        # Create the order
+        # Creates the order
         serializer = OrderSerializer(data=request.data, context={'request': request})
 
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 class UpdateOrderStatusView(APIView):
     permission_classes = [IsAuthenticated]

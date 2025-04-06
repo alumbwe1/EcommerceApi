@@ -14,6 +14,8 @@ class Address(models.Model):
     lat = models.FloatField()
     log = models.FloatField()
     isDefault = models.BooleanField(default=False)
+    room_number = models.CharField(max_length=50, blank=True, null=True)
+    apartment = models.CharField(max_length=100, blank=True, null=True)
     address = models.CharField( max_length=255, blank=False)
     phone = models.CharField( max_length=255, blank=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -26,9 +28,13 @@ class Address(models.Model):
     
 
 class Extras(models.Model):
+    image = models.ImageField(upload_to='extras/', blank=True, null=True)
     isVerified = models.BooleanField(default=False)
     otp =models.CharField(default='', max_length=6)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "{}/{}".format(self.user.username, self.id)
 
     def __str__(self):
         return "{}/{}".format(self.user.username, self.id)

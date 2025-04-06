@@ -24,7 +24,7 @@ class Order(models.Model):
         ('pending', 'Pending'),               # Order placed, waiting for confirmation
         ('accepted', 'Accepted'),             # Restaurant/brand accepted the order
         ('preparing', 'Preparing'),           # Order being prepared
-        ('out_for_delivery', 'Out for Delivery'),  # Assigned delivery boy, on the way
+        ('on the way', 'On The way'),  # Assigned delivery boy, on the way
         ('delivered', 'Delivered'),           # Successfully delivered
         ('cancelled', 'Cancelled'),           # Order cancelled
     ]

@@ -239,16 +239,16 @@ class DashboardStats(APIView):
 
         products_per_brand = user_brands.annotate(
             product_count=Count('products')
-        ).values('id', 'product_count')
+        ).aggregate(total=Sum('product_count'))['total'] or 0
 
         categories_per_brand = user_brands.annotate(
             category_count=Count('categories')
-        ).values('id', 'category_count')
+        ).aggregate(total=Sum('category_count'))['total'] or 0
 
         return Response({
             "total_products": total_products,
-            "products_per_brand": list(products_per_brand),
-            "categories_per_brand": list(categories_per_brand),
+            "products_per_brand": products_per_brand,
+            "categories_per_brand": categories_per_brand,
         })
 class CreateProductView(APIView):
     permission_classes = [IsAuthenticated]
@@ -291,7 +291,7 @@ class CreateProductView(APIView):
                 title=request.data.get('title'),
                 description=request.data.get('description'),
                 price=request.data.get('price'),
-                imageUrls=image_urls,  # pass list directly
+                imageUrls=image_urls,
                 rating=request.data.get('rating') or 0,
                 stock=request.data.get('stock') or 0,
                 is_featured=request.data.get('is_featured') in ['true', 'True', True],

@@ -20,6 +20,7 @@ class DeliveryBoySerializer(serializers.ModelSerializer):
         model = DeliveryBoy
         fields = '__all__'
 
+
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
@@ -68,7 +69,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'delivery_location', 'room_number', 'address',
             'order_status', 'delivery_boy', 'delivery_boy_id', 'created_at'
         ]
-        read_only_fields = ['customer', 'created_at']
+        read_only_fields = ['created_at']
 
     def create(self, validated_data):
         # Extract order items FIRST
