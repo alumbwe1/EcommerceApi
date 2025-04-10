@@ -30,7 +30,7 @@ STRIPE_PUBLISHABLE_KEY = 'pk_test_51QFbb1D0Gl6xIvWFKgWl3OtWOLcdRHmqVxk2wKDC4q0R3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['10.0.2.2','192.168.181.145','localhost', '127.0.0.1','192.168.2.145']
+ALLOWED_HOSTS = ['10.0.2.2','192.168.124.145','localhost', '127.0.0.1','192.168.2.145']
 
 # Allow up to 50 MB uploads (adjust if needed)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB in bytes
@@ -146,10 +146,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)
-    "site_title": "Reign Admin",
+    "site_title": "Nyami Admin",
 
     # Title on the login screen (19 chars max) (defaults to current_admin_site.site_header if absent or None)
-    "site_header": "Reign",
+    "site_header": "Nyami",
 
     # Title on the brand (19 chars max) (defaults to current_admin_site.site_header if absent or None)
     "site_brand": "Reign",

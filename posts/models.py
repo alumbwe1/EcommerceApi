@@ -85,14 +85,14 @@ class Product(models.Model):
     
 
 
-#Delivery partner #[InFute should be a seperate]
+#Delivery partner #[InFuture should be a seperate]
 class DeliveryBoy(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE,null=True)
     name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=15, unique=True)
     profile_pic = models.ImageField(upload_to='delivery_boy_pics/', blank=True)
     vehicle_type = models.CharField(max_length=100, choices=[('bike', 'Bike'), ('car', 'Car'),('walk','Walk')], default='bike')
-
+    is_online = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
