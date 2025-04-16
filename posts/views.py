@@ -197,7 +197,7 @@ class SearchBrand(generics.ListAPIView):
         if query:
             # ERROR: Missing field name before __icontains
             # Should be something like: models.Brand.objects.filter(name__icontains=query)
-            return models.Brand.objects.filter(__icontains=query)  
+            return models.Brand.objects.filter(title__icontains=query)  
         return models.Brand.objects.none()
 
 class BrandViewSet(viewsets.ModelViewSet):

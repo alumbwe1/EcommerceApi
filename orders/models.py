@@ -36,6 +36,7 @@ class Order(models.Model):
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES)
     delivery_type = models.CharField(max_length=20, choices=DELIVERY_TYPE_CHOICES)
     delivery_location = models.CharField(max_length=20, choices=DELIVERY_LOCATION_CHOICES)
+    earnings = models.IntegerField(default=0)
     room_number = models.CharField(max_length=50, blank=True, null=True)  # For campus
     address = models.TextField(blank=True, null=True)  # For off-campus
     is_paid = models.BooleanField(default=False)

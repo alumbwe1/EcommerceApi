@@ -22,6 +22,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-0dmktpnm-8*yzg2eho%5s%i2n4)2k!m@mxf=+ibi%g!no%u6cd'
 
+
+#Airtel Configurations
+AIRTEL_CLIENT_ID = '89f92d1a-9f56-4b97-a55d-1878c3b25bc6'
+AIRTEL_CLIENT_SECRET = '****************************'
+AIRTEL_AUTH_URL = 'https://openapi.airtel.africa/auth/oauth2/token'
+AIRTEL_BASE_URL = 'https://openapi.airtel.africa'
+AIRTEL_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
 # settings.py
 STRIPE_SECRET_KEY = 'sk_test_51QFbb1D0Gl6xIvWFQud1VOEQml8YQIgITT0CKa5McDJ5sCB1ZREhGGbTkbj9rm1GP4PC7Mtody85jbNhTdCXtas100p78PN2BC'
 STRIPE_PUBLISHABLE_KEY = 'pk_test_51QFbb1D0Gl6xIvWFKgWl3OtWOLcdRHmqVxk2wKDC4q0R36FhcaAgClu60SL9cFBaI8cBlmc81f2bnkH9d5Io8IyA00IqkF8REX'

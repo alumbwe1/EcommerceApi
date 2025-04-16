@@ -72,19 +72,28 @@ class CreateOrderView(APIView):
         # Process the request data directly
         request.data['customer'] = request.user.id
 
-        # Find the delivery boy with the least number of completed deliveries
-        delivery_boy = DeliveryBoy.objects.annotate(
-            completed_orders_count=Count('orders', filter=Q(orders__order_status='delivered'))
-        ).order_by('completed_orders_count').first()
+        # Find the online delivery boy with the least number of completed deliveries
+        delivery_boy = DeliveryBoy.objects.filter(
+            is_online=True
+        ).annotate(
+            completed_deliveries=Count('orders', filter=Q(orders__order_status='delivered'))
+        ).order_by('completed_deliveries').first()
 
         if delivery_boy is None:
             return Response(
-                {"error": "No delivery boys available"},
+                {"error": "No online delivery boys available"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         # Assigns the selected delivery boy to the order data
         request.data['delivery_boy_id'] = delivery_boy.id
+
+        # Set earnings based on delivery location
+        delivery_location = request.data.get('delivery_location', 'on_campus')
+        if delivery_location == 'off_campus':
+            request.data['earnings'] = 10
+        else:
+            request.data['earnings'] = 5
 
         # Creates the order
         serializer = OrderSerializer(data=request.data, context={'request': request})
@@ -93,8 +102,6 @@ class CreateOrderView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 
 class UpdateOrderStatusView(APIView):
