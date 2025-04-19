@@ -1,5 +1,4 @@
 from rest_framework import serializers
-
 from . import models
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -14,3 +13,4 @@ class ExtrasSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Extras
         fields = '__all__'
+

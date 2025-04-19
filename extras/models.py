@@ -11,8 +11,8 @@ class Address(models.Model):
         (OFFICE, "Office"),
         (SCHOOL, "School"),
     )
-    lat = models.FloatField()
-    log = models.FloatField()
+    lat = models.FloatField(null=True, blank=True)
+    log = models.FloatField(null=True, blank=True)
     isDefault = models.BooleanField(default=False)
     room_number = models.CharField(max_length=50, blank=True, null=True)
     apartment = models.CharField(max_length=100, blank=True, null=True)

@@ -15,18 +15,27 @@ class AddAdress(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        # Check if user already has an address
+        if models.Address.objects.filter(user=request.user).exists():
+            return Response(
+                {"error": "You already have an address. Please delete your current address first."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         data = request.data
 
         user_address = models.Address.objects.create(
             user = request.user,
             lat = data['lat'],
-            lng = data['lng'],
+            log = data['log'],
             isDefault = data['isDefault'],
             address = data['address'],
             phone = data['phone'],
-            addressType = data['addressType']
-
+            addressType = data['addressType'],
+            room_number = data['room_number'],
+            apartment = data['apartment']
         )
+
         if user_address.isDefault == True:
             models.Address.objects.filter(user=request.user).update(isDefault=False)
 
