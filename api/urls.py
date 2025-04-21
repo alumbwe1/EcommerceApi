@@ -9,9 +9,10 @@ urlpatterns = [
     path('address/',include('extras.urls')),
     path('orders/',include('orders.urls')),
     path('wishlist/', include('wishlist.urls')),
-    path('products/', include('posts.urls')),  
-    path('auth/', include('djoser.urls')),  
-    path('auth/', include('djoser.urls.authtoken')), 
+    path('products/', include('posts.urls')),
+    path('auth/', include('djoser.urls')),
+    path('auth/', include('djoser.urls.authtoken')),
+    path('payments/', include('payments.urls')),
 ]
 
 # This allows serving media files during development
