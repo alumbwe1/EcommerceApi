@@ -21,7 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-0dmktpnm-8*yzg2eho%5s%i2n4)2k!m@mxf=+ibi%g!no%u6cd'
-
+#Lenco Configurations
+Lenco_CLIENT_ID = '89f92d1a-9f56-4b97-a55d-1878c3b25bc6'
+Lenco_CLIENT_SECRET = '****************************'
+Lenco_AUTH_URL = 'https://openapi.airtel.africa/auth/oauth2/token'
+Lenco_BASE_URL = 'https://openapi.airtel.africa'
+Lenco_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
 
 #Airtel Configurations
 AIRTEL_CLIENT_ID = '89f92d1a-9f56-4b97-a55d-1878c3b25bc6'
