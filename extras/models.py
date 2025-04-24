@@ -18,6 +18,7 @@ class Address(models.Model):
     apartment = models.CharField(max_length=100, blank=True, null=True)
     address = models.CharField( max_length=255, blank=False)
     phone = models.CharField( max_length=255, blank=False)
+    surname = models.CharField(max_length=255, blank=False,default='Munali')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     addressType = models.CharField(choices=ADDRESSTYPES, max_length=10, default=HOME)
 
