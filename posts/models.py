@@ -43,7 +43,7 @@ class Brand(models.Model):
     email = models.EmailField(unique=True, blank=True)
     rating = models.FloatField(default=0, blank=True)
     discount = models.FloatField(default=0, blank=True)
-    cuisine_types = models.TextField(default="Asian,Chinese,Indian")
+    cuisine_types = models.TextField(default="Asian, Chinese, Indian")
     radius = models.FloatField(default=0, blank=True)
     cover_photo = models.ImageField(upload_to='brand_covers/', blank=True, null=True)  
     opening_hours = models.CharField(max_length=100, null=True)

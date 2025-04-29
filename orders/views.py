@@ -143,13 +143,30 @@ class CustomerOrdersView(APIView):
         serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)
 
+
+#Online Status view for a delievery personal
 class DeliveryBoyStatusView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, delivery_boy_id):
-        # Assuming there's a field `is_online` in the DeliveryBoy model
         try:
             delivery_boy = DeliveryBoy.objects.get(id=delivery_boy_id)
             return Response({"is_online": delivery_boy.is_online})
+        except DeliveryBoy.DoesNotExist:
+            return Response({"error": "Delivery boy not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    def patch(self, request, delivery_boy_id):
+        try:
+            delivery_boy = DeliveryBoy.objects.get(id=delivery_boy_id)
+            is_online = request.data.get('is_online')
+
+            if is_online is None:
+                return Response({"error": "is_online field is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+            delivery_boy.is_online = is_online
+            delivery_boy.save()
+
+            return Response({"message": "Status updated successfully", "is_online": delivery_boy.is_online}, status=status.HTTP_200_OK)
+
         except DeliveryBoy.DoesNotExist:
             return Response({"error": "Delivery boy not found"}, status=status.HTTP_404_NOT_FOUND)

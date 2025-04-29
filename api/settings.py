@@ -22,6 +22,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-0dmktpnm-8*yzg2eho%5s%i2n4)2k!m@mxf=+ibi%g!no%u6cd'
 
+# settings.py
+TWILIO_ACCOUNT_SID = 'AC04343bf38e09bab55428051af1734ead'
+TWILIO_AUTH_TOKEN = '654fa91eb5665e320180440ab408e6a4'
+TWILIO_FROM_PHONE = '+13412373747'
+
+
+
 
 #Airtel Configurations
 AIRTEL_CLIENT_ID = '89f92d1a-9f56-4b97-a55d-1878c3b25bc6'
@@ -37,7 +44,7 @@ STRIPE_PUBLISHABLE_KEY = 'pk_test_51QFbb1D0Gl6xIvWFKgWl3OtWOLcdRHmqVxk2wKDC4q0R3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['10.0.2.2','192.168.124.145','localhost', '127.0.0.1','192.168.2.145']
+ALLOWED_HOSTS = ['10.0.2.2','192.168.119.145','localhost', '127.0.0.1','192.168.2.145']
 
 # Allow up to 50 MB uploads (adjust if needed)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB in bytes
@@ -61,6 +68,7 @@ INSTALLED_APPS = [
     'wishlist',
     'extras',
     'orders',
+    'phone_verification',
     'payments',
 
 ]
