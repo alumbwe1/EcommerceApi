@@ -84,6 +84,18 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
+#Firebase Admin Init
+import firebase_admin
+from firebase_admin import credentials
+from pathlib import Path
+
+
+BASE_DIR = Path(__file__).resolve().parent
+cred_path = BASE_DIR / 'cred.json'
+cred = credentials.Certificate(str(cred_path))
+firebase_admin.initialize_app(cred)
+
 CORS_ALLOW_ALL_ORIGINS = True
 ROOT_URLCONF = 'api.urls'
 
