@@ -38,6 +38,8 @@ class Brand(models.Model):
     campus = models.CharField(max_length=155, blank=True)
     image = models.ImageField(upload_to='brand_images/', blank=False)  
     description = models.TextField(blank=True)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
     address = models.TextField(blank=True)
     phone = models.CharField(max_length=15, blank=True)
     email = models.EmailField(unique=True, blank=True)
