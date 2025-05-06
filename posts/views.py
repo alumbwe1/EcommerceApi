@@ -15,6 +15,27 @@ from orders.serializers import OrderSerializer
 from orders.models import Order
 
 from . import models, serializers
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from django.contrib.auth.models import User
+
+@api_view(['POST'])
+def google_auth(request):
+    token = request.data.get('token')
+    try:
+        # Replace 'YOUR_GOOGLE_CLIENT_ID' with your mobile app's client ID
+        idinfo = id_token.verify_oauth2_token(token, requests.Request(), '10585509659-s75jpl556k0gnb9ks62j0teg2gs6nklr.apps.googleusercontent.com')
+        
+        # Extract user details
+        email = idinfo['email']
+        # Create or authenticate user in Django
+        user = User.objects.get_or_create(email=email)
+        # Return Django auth token or session
+        return Response({'status': 'success', 'user_id': user.id})
+    except ValueError:
+        return Response({'status': 'invalid token'}, status=400)
 
 
 class CategoryList(generics.ListAPIView):

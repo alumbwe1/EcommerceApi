@@ -26,7 +26,6 @@ class AddAdress(APIView):
             address = data['address'],
             phone = data['phone'],
             addressType = data['addressType'],
-            room_number = data['room_number'],
             apartment = data['apartment']
         )
 
