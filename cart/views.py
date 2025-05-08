@@ -9,7 +9,10 @@ from rest_framework.permissions import IsAuthenticated # type: ignore
 from django.shortcuts import get_object_or_404 # type: ignore
 from rest_framework import status,generics # type: ignore
 from rest_framework.response import Response # type: ignore
-from rest_framework.views import APIView # type: ignore
+from rest_framework.views import APIView # type: 
+
+
+
 
 #This is for Airtel Authorization
 #  to get a an acess_Token
@@ -91,6 +94,8 @@ def collectMoney(self, accessToken, reference, CustomerPhoneNumber, amount, tran
         }
     }
 
+
+#Adds product + option for {addons} if not given to cart 
 class AddItemToCart(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -150,7 +155,7 @@ class AddItemToCart(APIView):
         )
 
 
-
+#Deletes the existing item in cart
 class DeleteCartItem(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -171,7 +176,9 @@ class DeleteCartItem(APIView):
         cart_item = get_object_or_404(Cart, id=cart_item_id)
         cart_item.delete()
         return Response({'message': 'Cart item successfully deleted'}, status=status.HTTP_204_NO_CONTENT)
-    
+
+
+#Cart count [How many products are in cart for aech user]  
 class CartCount(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -181,6 +188,7 @@ class CartCount(APIView):
         cart_count = cart_items.count()
         return Response({'cart_count': cart_count}, status=status.HTTP_200_OK)
 
+#Checks the item if already in cart mainly before adding it to cart
 class CheckItemInCart(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -189,6 +197,10 @@ class CheckItemInCart(APIView):
         #Checks if the item is already in Cart
         in_cart = Cart.objects.filter(user=user, product__id=product).exists()
         return Response({'in_cart': in_cart}, status=status.HTTP_200_OK)
+
+
+
+#Updates the cart Item quantity 
 class UpdateCartItemQuantity(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -214,7 +226,7 @@ class UpdateCartItemQuantity(APIView):
         cart_item.save()
         return Response({'message': 'Cart item quantity successfully updated'}, status=status.HTTP_200_OK)
 
-
+#Fetches cart items for a user
 class  GetUserCart(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.CartSerializer

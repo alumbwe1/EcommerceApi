@@ -9,13 +9,10 @@ from django.core.files.storage import default_storage # type: ignore
 from django.core.files.base import ContentFile # type: ignore
 from rest_framework.parsers import MultiPartParser, FormParser
 import json
-
 import random
 from orders.serializers import OrderSerializer
 from orders.models import Order
-
 from . import models, serializers
-
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -23,7 +20,7 @@ from firebase_admin import auth
 from django.contrib.auth.models import User
 from rest_framework import status
 
-
+#Most of the views are protected [Token based Authorization]
 
 @api_view(['POST'])
 def verify_firebase_token(request):
