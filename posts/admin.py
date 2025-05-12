@@ -8,3 +8,4 @@ admin.site.register(models.Brand)
 admin.site.register(models.DeliveryBoy)
 admin.site.register(models.Product)
 
+

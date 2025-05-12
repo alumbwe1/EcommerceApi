@@ -3,8 +3,9 @@ from django.db.models import Count, Sum, Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .models import Order, OrderItem, DeliveryBoy,Product
+from .models import Order,OrderItem
 from .serializers import OrderSerializer, OrderItemSerializer
+from posts.models import Product,DeliveryBoy
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 
@@ -87,19 +88,16 @@ class CreateOrderView(APIView):
 
         # Assigns the selected delivery boy to the order data
         request.data['delivery_boy_id'] = delivery_boy.id
-
-        # Set earnings based on delivery location
-        delivery_location = request.data.get('delivery_location', 'on_campus')
-        if delivery_location == 'off_campus':
-            request.data['earnings'] = 10
-        else:
-            request.data['earnings'] = 5
-
         # Creates the order
         serializer = OrderSerializer(data=request.data, context={'request': request})
 
         if serializer.is_valid():
-            serializer.save()
+            order = serializer.save()
+            # Record delivery earnings
+            DeliveryBoyEarnings.objects.create(
+                delivery_boy=delivery_boy,
+                total_earnings=order.earnings
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -147,9 +145,26 @@ class DeliveryBoyStatusView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, delivery_boy_id):
-        # Assuming there's a field `is_online` in the DeliveryBoy model
         try:
-            delivery_boy = DeliveryBoy.objects.get(id=delivery_boy_id)
+            delivery_boy = DeliveryBoy.objects.get(user__id=delivery_boy_id)
             return Response({"is_online": delivery_boy.is_online})
+        except DeliveryBoy.DoesNotExist:
+            return Response({"error": "Delivery boy not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    def patch(self, request, delivery_boy_id):
+        try:
+            delivery_boy = DeliveryBoy.objects.get(user__id=delivery_boy_id)
+            
+            if request.user.id != delivery_boy.user.id:
+                return Response({"error": "Unauthorized access"}, status=status.HTTP_403_FORBIDDEN)
+            
+            delivery_boy.is_online = request.data.get('is_online', delivery_boy.is_online)
+            delivery_boy.save()
+            
+            return Response({
+                "message": "Status updated successfully",
+                "is_online": delivery_boy.is_online
+            })
+            
         except DeliveryBoy.DoesNotExist:
             return Response({"error": "Delivery boy not found"}, status=status.HTTP_404_NOT_FOUND)

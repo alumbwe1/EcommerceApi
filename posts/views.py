@@ -1,9 +1,10 @@
 from rest_framework import viewsets, generics, status  # type: ignore
 from rest_framework.views import APIView  # type: ignore
-from rest_framework.response import Response  
+from rest_framework.response import Response, Serializer  
 from rest_framework.permissions import IsAuthenticated  
-from django.db.models import Count  
+from django.db.models import Count, Sum, Case, When, Value, IntegerField
 from django.utils import timezone
+from datetime import timedelta
 from django.db.models import Count, Sum
 from django.core.files.storage import default_storage # type: ignore
 from django.core.files.base import ContentFile # type: ignore
@@ -13,27 +14,48 @@ import json
 import random
 from orders.serializers import OrderSerializer
 from orders.models import Order
-
+from google.oauth2 import id_token
 from . import models, serializers
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from google.oauth2 import id_token
 from google.auth.transport import requests
 from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
+
 
 @api_view(['POST'])
 def google_auth(request):
     token = request.data.get('token')
+
     try:
-        # Replace 'YOUR_GOOGLE_CLIENT_ID' with your mobile app's client ID
-        idinfo = id_token.verify_oauth2_token(token, requests.Request(), '10585509659-s75jpl556k0gnb9ks62j0teg2gs6nklr.apps.googleusercontent.com')
-        
-        # Extract user details
+        idinfo = id_token.verify_oauth2_token(
+            token,
+            requests.Request(),
+            '10585509659-tk8mjrl87tak7b6j5bmq5b67lgc4lhmd.apps.googleusercontent.com'
+        )
+
         email = idinfo['email']
-        # Create or authenticate user in Django
-        user = User.objects.get_or_create(email=email)
-        # Return Django auth token or session
-        return Response({'status': 'success', 'user_id': user.id})
+        username = email.split('@')[0]
+
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={'username': username}
+        )
+
+        if created:
+            user.set_unusable_password()
+            user.save()
+
+        auth_token, _ = Token.objects.get_or_create(user=user)
+
+        return Response({
+            'status': 'success',
+            'token': auth_token.key,
+            'user_id': user.id,
+            'email': user.email,
+            'username': user.username 
+        })
+
     except ValueError:
         return Response({'status': 'invalid token'}, status=400)
 
@@ -129,8 +151,8 @@ class SearchProductByBrand(generics.ListAPIView):
         queryset = models.Product.objects.filter(brand_id=brand_id)
 
         if search_query:
-            # NOTE: This may be incorrect - 'brand__icontains' should likely be 'title__icontains'
-            queryset = queryset.filter(brand__icontains=search_query)  # Corrected lookup
+            
+            queryset = queryset.filter(brand__icontains=search_query)  
         return queryset
 
 
@@ -141,12 +163,12 @@ class ProductsByBrand(generics.ListAPIView):
     def get_queryset(self):
         """Filter products by brand ID and optional search query in title."""
         brand_id = self.kwargs.get("brand_id")
-        search_query = self.request.query_params.get("search", None)  # Get the search query from the request
+        search_query = self.request.query_params.get("search", None) 
 
-        queryset = models.Product.objects.filter(brand_id=brand_id)  # Filter products by brand
+        queryset = models.Product.objects.filter(brand_id=brand_id)  
 
         if search_query:
-            queryset = queryset.filter(title__icontains=search_query)  # Filter products by search query in title
+            queryset = queryset.filter(title__icontains=search_query) 
 
         return queryset
 
@@ -171,6 +193,25 @@ class DeliveryBoyViewSet(viewsets.ModelViewSet):
     
     queryset = models.DeliveryBoy.objects.all()
     serializer_class = serializers.DeliveryBoySerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        
+        # Prevent duplicate registration
+        if models.DeliveryBoy.objects.filter(user=user).exists():
+            return Response({"error": "You are already registered as a delivery boy."},
+                            status=status.HTTP_400_BAD_REQUEST)
+                            
+        
+        serializer = self.get_serializer(data=request.data)
+        
+        serializer.is_valid(raise_exception=True)
+        
+        # Save with the user from the token
+        serializer.save(user=user)
+        
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class CategoriesByBrand(generics.ListAPIView):
@@ -216,8 +257,6 @@ class SearchBrand(generics.ListAPIView):
         """Filter brands based on search query."""
         query = self.request.query_params.get("q", None)
         if query:
-            # ERROR: Missing field name before __icontains
-            # Should be something like: models.Brand.objects.filter(name__icontains=query)
             return models.Brand.objects.filter(title__icontains=query)  
         return models.Brand.objects.none()
 
@@ -351,7 +390,7 @@ class DeliveryBoyEarnings(APIView):
         )
 
         # Weekly earnings (last 7 days)
-        week_ago = today - timezone.timedelta(days=7)
+        week_ago = today - timedelta(days=7)
         weekly_stats = Order.objects.filter(
             delivery_boy=delivery_boy,
             order_status='delivered',
