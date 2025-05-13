@@ -21,14 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-0dmktpnm-8*yzg2eho%5s%i2n4)2k!m@mxf=+ibi%g!no%u6cd'
-
-# settings.py
-TWILIO_ACCOUNT_SID = 'AC04343bf38e09bab55428051af1734ead'
-TWILIO_AUTH_TOKEN = '654fa91eb5665e320180440ab408e6a4'
-TWILIO_FROM_PHONE = '+13412373747'
-
-
-
+#Lenco Configurations
+Lenco_CLIENT_ID = '89f92d1a-9f56-4b97-a55d-1878c3b25bc6'
+Lenco_CLIENT_SECRET = '****************************'
+Lenco_AUTH_URL = 'https://openapi.airtel.africa/auth/oauth2/token'
+Lenco_BASE_URL = 'https://openapi.airtel.africa'
+Lenco_PAYMENT_URL = 'https://openapi.airtel.africa/merchant/v1/payments/';
 
 #Airtel Configurations
 AIRTEL_CLIENT_ID = '89f92d1a-9f56-4b97-a55d-1878c3b25bc6'
@@ -44,13 +42,15 @@ STRIPE_PUBLISHABLE_KEY = 'pk_test_51QFbb1D0Gl6xIvWFKgWl3OtWOLcdRHmqVxk2wKDC4q0R3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['10.0.2.2','192.168.132.145','localhost', '127.0.0.1','192.168.2.145']
+ALLOWED_HOSTS = ['10.0.2.2','localhost', '192.168.138.145','192.168.176.145','127.0.0.1']
 
 # Allow up to 50 MB uploads (adjust if needed)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB in bytes
 FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800  # Also control file upload size
 
 # Application definition
+
+SITE_ID = 1
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -70,13 +70,32 @@ INSTALLED_APPS = [
     'orders',
     'phone_verification',
     'payments',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 
 ]
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    }
+}
+
+ROOT_URLCONF = 'googlelogin.urls'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+     'allauth.account.middleware.AccountMiddleware',
     #'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -169,6 +188,13 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
 
 
 

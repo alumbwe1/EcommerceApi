@@ -10,6 +10,7 @@ router.register(r'deliveryauth', views.DeliveryBoyViewSet)
 
 urlpatterns = router.urls + [
     path('createproduct/', views.CreateProductView.as_view(), name='create-product'),
+    path('googleauth/', views.google_auth, name='google-auth'),
     path('categories/', views.CategoryList.as_view(), name='categories'),
     path('brand/', views.BrandList.as_view(), name='Brands'),
     path('categories/home/', views.HomeCategoryList.as_view(), name='categories'),

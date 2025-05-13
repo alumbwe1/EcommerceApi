@@ -38,6 +38,8 @@ class Brand(models.Model):
     campus = models.CharField(max_length=155, blank=True)
     image = models.ImageField(upload_to='brand_images/', blank=False)  
     description = models.TextField(blank=True)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
     address = models.TextField(blank=True)
     phone = models.CharField(max_length=15, blank=True)
     email = models.EmailField(unique=True, blank=True)
@@ -63,6 +65,7 @@ class Product(models.Model):
     is_featured = models.BooleanField(default=False)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.IntegerField()
+    
     # List of ingredients used in the dish
     ingredients = models.JSONField(blank=True, null=True)  
     # Dietary restrictions (e.g., vegan, gluten-free)
@@ -88,7 +91,7 @@ class Product(models.Model):
 
 #Delivery partner #[InFuture should be a seperate]
 class DeliveryBoy(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE,null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=15, unique=True)
     profile_pic = models.ImageField(upload_to='delivery_boy_pics/', blank=True)
@@ -97,3 +100,6 @@ class DeliveryBoy(models.Model):
 
     def __str__(self):
         return self.name
+
+
+
