@@ -13,53 +13,6 @@ import json
 import random
 from orders.serializers import OrderSerializer
 from orders.models import Order
-<<<<<<< HEAD
-from . import models, serializers
-from rest_framework.authtoken.models import Token
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from firebase_admin import auth
-from django.contrib.auth.models import User
-from rest_framework import status
-
-#Most of the views are protected [Token based Authorization]
-
-@api_view(['POST'])
-def verify_firebase_token(request):
-    token = request.data.get('idToken')
-
-    if not token:
-        return Response({"error": "No ID token provided"}, status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        decoded_token = auth.verify_id_token(token)
-        uid = decoded_token.get('uid')
-        phone_number = decoded_token.get('phone_number')
-
-        # Get or create the Django user
-        user, created = User.objects.get_or_create(username=uid, defaults={'phone_number': phone_number})
-
-        # Save phone if needed
-        if phone_number:
-            user.phone_number = phone_number
-            user.save()
-
-        # Create or get DRF token
-        drf_token, _ = Token.objects.get_or_create(user=user)
-
-        return Response({
-            "token": drf_token.key,
-            "uid": uid,
-            "phone_number": user.phone_number,
-            "created": created,
-        }, status=status.HTTP_200_OK)
-
-    except auth.InvalidIdTokenError:
-        return Response({"error": "Invalid ID token"}, status=status.HTTP_401_UNAUTHORIZED)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-=======
 from google.oauth2 import id_token
 from . import models, serializers
 from rest_framework.decorators import api_view
@@ -104,7 +57,6 @@ def google_auth(request):
 
     except ValueError:
         return Response({'status': 'invalid token'}, status=400)
->>>>>>> 77eab2ec7ee61e7e2cc66dbe21459fe6f975db18
 
 
 class CategoryList(generics.ListAPIView):
