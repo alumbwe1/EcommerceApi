@@ -33,7 +33,7 @@ class Campus(models.Model):
 
 # Brand/Restraurant model 
 class Brand(models.Model):
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='brands', default=get_default_user)  # Default to user with ID 1
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='brands', )  
     title = models.CharField(max_length=255, unique=True)
     campus = models.CharField(max_length=155, blank=True)
     image = models.ImageField(upload_to='brand_images/', blank=False)  
@@ -43,10 +43,9 @@ class Brand(models.Model):
     address = models.TextField(blank=True)
     phone = models.CharField(max_length=15, blank=True)
     email = models.EmailField(unique=True, blank=True)
-    rating = models.FloatField(default=0, blank=True)
-    discount = models.FloatField(default=0, blank=True)
+    rating = models.IntegerField(default=0, blank=True)
+    discount = models.IntegerField(default=0, blank=True)
     cuisine_types = models.TextField(default="Asian, Chinese, Indian")
-    radius = models.FloatField(default=0, blank=True)
     cover_photo = models.ImageField(upload_to='brand_covers/', blank=True, null=True)  
     opening_hours = models.CharField(max_length=100, null=True)
     min_delivery_time = models.PositiveIntegerField(help_text="Minimum delivery time in minutes", null=True)  

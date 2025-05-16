@@ -1,5 +1,7 @@
+from dataclasses import field
 from rest_framework import serializers # type: ignore
 from . import models
+from posts.serializers import BrandSerializer
 
 class WishlistSerializer(serializers.ModelSerializer):
     """Serializer for product reactions."""
@@ -25,3 +27,10 @@ class WishlistSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Wishlist
         fields = ['id', 'title', 'description', 'imageUrls', 'rating', 'created_at', 'updated_at', 'stock','category','brand','is_featured','price','colors','sizes','clothesType']
+
+    class BrandReactionSerializer(serializers.ModelSerializer):
+        brand =  BrandSerializer(read_only=True)
+
+        class Meta:
+            model = models.BrandWishlist
+            fields = '__all__'
