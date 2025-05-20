@@ -1,3 +1,4 @@
+from typing import override
 from rest_framework import viewsets, generics, status  # type: ignore
 from rest_framework.views import APIView  # type: ignore
 from rest_framework.response import Response, Serializer  
@@ -14,11 +15,13 @@ import random
 from orders.serializers import OrderSerializer
 from orders.models import Order
 from google.oauth2 import id_token
+from rest_framework import permissions
 from . import models, serializers
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from google.auth.transport import requests
 from django.contrib.auth.models import User
+from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
 
 
@@ -74,11 +77,21 @@ class HomeCategoryList(generics.ListAPIView):
         random.shuffle(queryset)
         return queryset[:5]
 
+class HomeBrandList(generics.ListAPIView):
+    serializer_class = serializers.BrandSerializer
+
+    def get_queryset(self):
+        queryset = list(models.Brand.objects.all())
+        random.shuffle(queryset)
+        return queryset[:20]
+
 
 class BrandList(generics.ListAPIView):
     """API view that lists all product brands."""
     serializer_class = serializers.BrandSerializer  
     queryset = models.Brand.objects.all()
+    permission_classes = [AllowAny]
+
 
 
 class ProductViewSet(viewsets.ModelViewSet):

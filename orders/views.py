@@ -95,11 +95,8 @@ class CreateOrderView(APIView):
 
         if serializer.is_valid():
             order = serializer.save()
-            # Record delivery earnings
-            DeliveryBoyEarnings.objects.create(
-                delivery_boy=delivery_boy,
-                total_earnings=order.earnings
-            )
+        
+        
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

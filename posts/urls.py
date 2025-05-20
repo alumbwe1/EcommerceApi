@@ -9,8 +9,12 @@ router.register(r'brands', views.BrandViewSet)
 router.register(r'deliveryauth', views.DeliveryBoyViewSet)
 
 urlpatterns = router.urls + [
+    #Create Product
     path('createproduct/', views.CreateProductView.as_view(), name='create-product'),
+    #GoogleAunth
     path('googleauth/', views.google_auth, name='google-auth'),
+    #HomeBrands
+    path('homebrands/', views.HomeBrandList.as_view(), name='home_brands'),
     path('categories/', views.CategoryList.as_view(), name='categories'),
     path('brand/', views.BrandList.as_view(), name='Brands'),
     path('categories/home/', views.HomeCategoryList.as_view(), name='categories'),
@@ -25,7 +29,7 @@ urlpatterns = router.urls + [
     path('categories/<int:category_id>/brands/', views.BrandsByCategory.as_view(), name='brands-by-category'),
     path('dashboard/stats/', views.DashboardStats.as_view(), name='dashboard-stats'),
     
-    # Delivery boy endpoints
+    # Delivery Personel endpoints
     path('delivery/earnings/', views.DeliveryBoyEarnings.as_view(), name='delivery-earnings'),
     path('delivery/orders/', views.DeliveryBoyOrders.as_view(), name='delivery-orders'),
     path('delivery/summary/', views.DeliveryBoyOrderSummary.as_view(), name='delivery-summary'),
