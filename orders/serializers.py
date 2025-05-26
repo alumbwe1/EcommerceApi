@@ -2,11 +2,17 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Order, OrderItem
 from posts.models import Product, Brand, DeliveryBoy
+from extras.models import Address
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email']
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields ='__all__'
 
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,6 +25,12 @@ class DeliveryBoySerializer(serializers.ModelSerializer):
     class Meta:
         model = DeliveryBoy
         fields = '__all__'
+
+    def to_representation(self, instance):
+        """Show user information in response"""
+        rep = super().to_representation(instance)
+        rep['user'] = UserSerializer(instance.user).data
+        return rep
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -48,25 +60,34 @@ class OrderSerializer(serializers.ModelSerializer):
         required=True,
         write_only=True
     )
+    extras = AddressSerializer(read_only=True)
+    extras_id = serializers.PrimaryKeyRelatedField(
+        queryset=Address.objects.all(),
+        write_only=True,
+        source='extras'
+    )
     brand = BrandSerializer(read_only=True)
+
     brand_id = serializers.PrimaryKeyRelatedField(
         queryset=Brand.objects.all(),
         write_only=True,
         source='brand'
     )
     delivery_boy = DeliveryBoySerializer(read_only=True)
+
     delivery_boy_id = serializers.PrimaryKeyRelatedField(
         queryset=DeliveryBoy.objects.all(),
         write_only=True,
         source='delivery_boy'
     )
+    
 
     class Meta:
         model = Order
         fields = [
             'id', 'customer', 'brand', 'brand_id', 'order_items',
             'total_price', 'payment_method', 'delivery_type',
-            'delivery_location', 'address',
+            'delivery_location', 'address', 'extras', 'extras_id',
             'order_status', 'delivery_boy', 'delivery_boy_id', 'created_at'
         ]
         read_only_fields = ['created_at']

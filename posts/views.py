@@ -108,6 +108,15 @@ class ProductViewSet(viewsets.ModelViewSet):
         """Save the new product instance."""
         serializer.save()
 
+    def update(self, request, *args, **kwargs):
+        """Update an existing product instance."""
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class ProductList(generics.ListAPIView):
     """API view that returns 20 randomly selected products."""
@@ -278,6 +287,12 @@ class BrandViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.BrandCreateSerializer
     permission_classes = [IsAuthenticated]
 
+    def create(self, request, *args, **kwargs):
+        # Prevent user from creating multiple brands
+        if models.Brand.objects.filter(owner=request.user).exists():
+            return Response({"error": "Brand already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         """Save the new brand and associate it with the current user."""
         serializer.save(owner=self.request.user) 
@@ -322,7 +337,7 @@ class DashboardStats(APIView):
             "products_per_brand": products_per_brand,
             "categories_per_brand": categories_per_brand,
         })
-class CreateProductView(APIView):
+class CreateOrUpdateProductView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
@@ -331,53 +346,102 @@ class CreateProductView(APIView):
         if not brand:
             return Response({"error": "No brand associated with this user."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Handle image uploads
-        image_urls = []
-        if request.FILES.getlist('images'):
-            for image in request.FILES.getlist('images'):
+        product_id = request.data.get('product_id')
+        is_update = bool(product_id)
+        product = None
+
+        if is_update:
+            try:
+                product = models.Product.objects.get(id=product_id, brand=brand)
+            except models.Product.DoesNotExist:
+                return Response({"error": "Product not found or not owned by this brand."}, status=status.HTTP_404_NOT_FOUND)
+
+        new_images = request.FILES.getlist('images')
+
+        # Handle images
+        if is_update:
+            image_urls = []
+
+            if new_images:
+                # Optionally delete old images from storage
+                for url in product.imageUrls:
+                    try:
+                        file_path = url.replace(settings.MEDIA_URL, '')
+                        default_storage.delete(file_path)
+                    except Exception:
+                        pass
+            else:
+                image_urls = product.imageUrls
+        else:
+            image_urls = []
+
+        if new_images:
+            for image in new_images:
                 if not image.name.lower().endswith(('png', 'jpg', 'jpeg')):
-                    return Response({"error": "Invalid image format - only PNG/JPG/JPEG allowed"}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"error": f"{image.name} must be PNG, JPG or JPEG"}, status=status.HTTP_400_BAD_REQUEST)
                 if image.size > 5 * 1024 * 1024:
-                    return Response({"error": f"{image.name} exceeds 5MB size limit"}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"error": f"{image.name} exceeds 5MB"}, status=status.HTTP_400_BAD_REQUEST)
 
                 path = default_storage.save(f'products/{brand.id}/{image.name}', ContentFile(image.read()))
                 image_urls.append(default_storage.url(path))
 
-        if not image_urls:
-            return Response({"error": "At least one product image is required"}, status=status.HTTP_400_BAD_REQUEST)
+        if not is_update and not image_urls:
+            return Response({"error": "At least one product image is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Parse JSON fields if needed
         def parse_json_field(field):
             value = request.data.get(field)
             if value:
                 try:
                     return json.loads(value)
                 except json.JSONDecodeError:
-                    return None
+                    return Response({"error": f"Invalid JSON in '{field}'"}, status=status.HTTP_400_BAD_REQUEST)
             return None
 
-        # Create product
         try:
-            product = models.Product.objects.create(
-                brand=brand,
-                title=request.data.get('title'),
-                description=request.data.get('description'),
-                price=request.data.get('price'),
-                imageUrls=image_urls,
-                rating=request.data.get('rating') or 0,
-                stock=request.data.get('stock') or 0,
-                is_featured=request.data.get('is_featured') in ['true', 'True', True],
-                addons=parse_json_field('addons'),
-                category_id=request.data.get('category'),
-                ingredients=parse_json_field('ingredients'),
-                dietary_restrictions=parse_json_field('dietary_restrictions'),
-            )
+            if is_update:
+                fields = ['title', 'description', 'price', 'rating', 'stock', 'is_featured', 'category']
+                for field in fields:
+                    if field in request.data:
+                        if field == 'is_featured':
+                            product.is_featured = request.data.get(field) in ['true', 'True', True]
+                        elif field == 'category':
+                            product.category_id = request.data.get('category')
+                        else:
+                            setattr(product, field, request.data.get(field))
 
-            return Response(serializers.ProductSerializer(product).data, status=status.HTTP_201_CREATED)
+                # Update image URLs only if new images were provided
+                if new_images:
+                    product.imageUrls = image_urls
+
+                for json_field in ['addons', 'ingredients', 'dietary_restrictions']:
+                    if json_field in request.data:
+                        parsed = parse_json_field(json_field)
+                        if isinstance(parsed, Response):
+                            return parsed  # Return error if parse failed
+                        setattr(product, json_field, parsed)
+
+                product.save()
+                return Response(serializers.ProductSerializer(product).data, status=status.HTTP_200_OK)
+
+            else:
+                new_product = models.Product.objects.create(
+                    brand=brand,
+                    title=request.data.get('title'),
+                    description=request.data.get('description'),
+                    price=request.data.get('price'),
+                    imageUrls=image_urls,
+                    rating=request.data.get('rating') or 0,
+                    stock=request.data.get('stock') or 0,
+                    is_featured=request.data.get('is_featured') in ['true', 'True', True],
+                    addons=parse_json_field('addons'),
+                    ingredients=parse_json_field('ingredients'),
+                    dietary_restrictions=parse_json_field('dietary_restrictions'),
+                    category_id=request.data.get('category'),
+                )
+                return Response(serializers.ProductSerializer(new_product).data, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
 
 class DeliveryBoyEarnings(APIView):
     """API view for delivery boy earnings statistics."""

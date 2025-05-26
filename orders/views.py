@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from posts.views import DeliveryBoyEarnings
 from .models import Order,OrderItem
 from .serializers import OrderSerializer, OrderItemSerializer
-from posts.models import Product,DeliveryBoy
+from posts.models import Product,DeliveryBoy, Brand
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 
@@ -15,38 +15,30 @@ class OrderStats(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        user = request.user
+        user_brands = Brand.objects.filter(owner=user)
+        brand_orders = Order.objects.filter(brand__in=user_brands)
         today = timezone.now().date()
         start_of_week = today - timezone.timedelta(days=today.weekday())
         start_of_month = today.replace(day=1)
 
         # Calculates the number of orders by status
-        completed_orders_count = Order.objects.filter(order_status='delivered').count()
-        cancelled_orders_count = Order.objects.filter(order_status='cancelled').count()
-        pending_orders_count = Order.objects.filter(order_status='pending').count()
+        completed_orders_count = brand_orders.filter(order_status='delivered').count()
+        cancelled_orders_count = brand_orders.filter(order_status='cancelled').count()
+        pending_orders_count = brand_orders.filter(order_status='pending').count()
         
         # Calculates total sales amount
-        total_sales = Order.objects.filter(order_status='delivered').aggregate(Sum('total_price'))['total_price__sum'] or 0
+        total_sales = brand_orders.filter(order_status='delivered').aggregate(Sum('total_price'))['total_price__sum'] or 0
         
         # Calculates sales for different time periods
-        today_sales = Order.objects.filter(
-            order_status='delivered',
-            created_at__date=today
-        ).aggregate(Sum('total_price'))['total_price__sum'] or 0
+        today_sales = brand_orders.filter(order_status='delivered', created_at__date=today).aggregate(Sum('total_price'))['total_price__sum'] or 0
 
-        weekly_sales = Order.objects.filter(
-            order_status='delivered',
-            created_at__date__gte=start_of_week,
-            created_at__date__lte=today
-        ).aggregate(Sum('total_price'))['total_price__sum'] or 0
+        weekly_sales = brand_orders.filter(order_status='delivered', created_at__date__gte=start_of_week, created_at__date__lte=today).aggregate(Sum('total_price'))['total_price__sum'] or 0
 
-        monthly_sales = Order.objects.filter(
-            order_status='delivered',
-            created_at__date__gte=start_of_month,
-            created_at__date__lte=today
-        ).aggregate(Sum('total_price'))['total_price__sum'] or 0
+        monthly_sales = brand_orders.filter(order_status='delivered', created_at__date__gte=start_of_month, created_at__date__lte=today).aggregate(Sum('total_price'))['total_price__sum'] or 0
 
         # Calculates the number of orders for a day
-        today_orders_count = Order.objects.filter(created_at__date=today).count()
+        today_orders_count = brand_orders.filter(created_at__date=today).count()
 
         return Response({
             "completed_orders": completed_orders_count,
@@ -148,24 +140,31 @@ class DeliveryBoyStatusView(APIView):
     def get(self, request, delivery_boy_id):
         try:
             delivery_boy = DeliveryBoy.objects.get(user__id=delivery_boy_id)
-            return Response({"is_online": delivery_boy.is_online})
+            return Response({"is_online": delivery_boy.is_online}, status=status.HTTP_200_OK)
         except DeliveryBoy.DoesNotExist:
             return Response({"error": "Delivery boy not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def patch(self, request, delivery_boy_id):
         try:
             delivery_boy = DeliveryBoy.objects.get(user__id=delivery_boy_id)
-            
-            if request.user.id != delivery_boy.user.id:
-                return Response({"error": "Unauthorized access"}, status=status.HTTP_403_FORBIDDEN)
-            
-            delivery_boy.is_online = request.data.get('is_online', delivery_boy.is_online)
-            delivery_boy.save()
-            
-            return Response({
-                "message": "Status updated successfully",
-                "is_online": delivery_boy.is_online
-            })
-            
         except DeliveryBoy.DoesNotExist:
             return Response({"error": "Delivery boy not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        if request.user.id != delivery_boy.user.id:
+            return Response({"error": "Unauthorized access"}, status=status.HTTP_403_FORBIDDEN)
+
+        is_online = request.data.get('is_online')
+        if not isinstance(is_online, bool):
+            return Response({"error": "'is_online' must be a boolean"}, status=status.HTTP_400_BAD_REQUEST)
+
+        delivery_boy.is_online = is_online
+        delivery_boy.save()
+
+        return Response({
+            "message": "Status updated successfully",
+            "is_online": delivery_boy.is_online
+        }, status=status.HTTP_200_OK)
