@@ -15,7 +15,6 @@ import random
 from orders.serializers import OrderSerializer
 from orders.models import Order
 from google.oauth2 import id_token
-from rest_framework import permissions
 from . import models, serializers
 from rest_framework.decorators import api_view
 from rest_framework.response import Response

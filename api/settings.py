@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-0dmktpnm-8*yzg2eho%5s%i2n4)2k!m@mxf=+ibi%g!no%u6cd'
+SECRET_KEY = 'django-insecure-0dmktpnm-8*yzg2eho%5s%dei2n4)2k!m@mxf=+ibi%g!no%u6cd'
 #Lenco Configurations
 Lenco_CLIENT_ID = '89f92d1a-9f56-4b97-a55d-1878c3b25bc6'
 Lenco_CLIENT_SECRET = '****************************'
@@ -41,7 +41,7 @@ STRIPE_PUBLISHABLE_KEY = 'pk_test_51QFbb1D0Gl6xIvWFKgWl3OtWOLcdRHmqVxk2wKDC4q0R3
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['10.0.2.2','localhost', '192.168.101.145', 'nyamix.onrender.com','192.168.202.145','127.0.0.1']
 
