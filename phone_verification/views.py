@@ -32,7 +32,7 @@ class GeneratePhoneOTP(APIView):
 
         data = PhoneOTPSerializer(otp_obj).data
         return Response(data, status=status.HTTP_200_OK)
-
+e
 class VerifyPhoneOTP(APIView):
     def post(self, request):
         serializer = VerifyOTPSerializer(data=request.data)

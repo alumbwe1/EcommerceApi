@@ -16,83 +16,83 @@ from rest_framework.views import APIView # type:
 
 #This is for Airtel Authorization
 #  to get a an acess_Token
-class AirtelMoney:
-    def baseUrl(self):
-        if settings.DEBUG:
-            return settings.AIRTEL_BASE_URL
-        else:
-            return 'https://openapi.airtel.africa'
+# class AirtelMoney:
+#     def baseUrl(self):
+#         if settings.DEBUG:
+#             return settings.AIRTEL_BASE_URL
+#         else:
+#             return 'https://openapi.airtel.africa'
     
-    def getAuthToken(self):
-        url = settings.AIRTEL_AUTH_URL
-        headers = {
-            'Content-Type': 'application/json',
-            'Accept': '*/*'
-        }
+#     def getAuthToken(self):
+#         url = settings.AIRTEL_AUTH_URL
+#         headers = {
+#             'Content-Type': 'application/json',
+#             'Accept': '*/*'
+#         }
         
-        auth_data = {
-            "client_id": settings.AIRTEL_CLIENT_ID,
-            "client_secret": settings.AIRTEL_CLIENT_SECRET,
-            "grant_type": "client_credentials"
-        }
+#         auth_data = {
+#             "client_id": settings.AIRTEL_CLIENT_ID,
+#             "client_secret": settings.AIRTEL_CLIENT_SECRET,
+#             "grant_type": "client_credentials"
+#         }
 
-        try:
-            response = requests.post(url, headers=headers, data=json.dumps(auth_data))
+#         try:
+#             response = requests.post(url, headers=headers, data=json.dumps(auth_data))
             
-            if response.status_code == 200:
-                return {
-                    "success": True,
-                    "data": response.json(),
-                    "status": response.status_code
-                }
-            else:
-                return {
-                    "success": False,
-                    "message": f"Authentication failed with status code {response.status_code}",
-                    "status": response.status_code
-                }
+#             if response.status_code == 200:
+#                 return {
+#                     "success": True,
+#                     "data": response.json(),
+#                     "status": response.status_code
+#                 }
+#             else:
+#                 return {
+#                     "success": False,
+#                     "message": f"Authentication failed with status code {response.status_code}",
+#                     "status": response.status_code
+#                 }
                 
-        except requests.exceptions.RequestException as ex:
-            return {
-                "success": False,
-                "message": f"Request failed: {str(ex)}",
-                "status": 500
-            }
-        except Exception as ex:
-            return {
-                "success": False,
-                "message": f"An error occurred: {str(ex)}",
-                "status": 500
-            }
+#         except requests.exceptions.RequestException as ex:
+#             return {
+#                 "success": False,
+#                 "message": f"Request failed: {str(ex)}",
+#                 "status": 500
+#             }
+#         except Exception as ex:
+#             return {
+#                 "success": False,
+#                 "message": f"An error occurred: {str(ex)}",
+#                 "status": 500
+#             }
 
 
-airtel = AirtelMoney()
-auth_results = airtel.getAuthToken()
-if auth_results['success']:
-    access_token = auth_results['data']['acess_token']
-    expires_in = auth_results['data']['expires_in']
+# airtel = AirtelMoney()
+# auth_results = airtel.getAuthToken()
+# if auth_results['success']:
+#     access_token = auth_results['data']['acess_token']
+#     expires_in = auth_results['data']['expires_in']
 
 
-#Collection API-USSD Push
-def collectMoney(self, accessToken, reference, CustomerPhoneNumber, amount, transactionId):
-    url = f'{settings.AIRTEL_PAYMENT_URL}'
+# #Collection API-USSD Push
+# def collectMoney(self, accessToken, reference, CustomerPhoneNumber, amount, transactionId):
+#     url = f'{settings.AIRTEL_PAYMENT_URL}'
 
-    headers = {
-        'Content-Type': 'application/json',
-        'Accept': '*/*',
-        'X-Country': 'ZM',
-        'X-Currency': 'ZMK',
-        'Authorization': f'Bearer {accessToken}'
-    }
+#     headers = {
+#         'Content-Type': 'application/json',
+#         'Accept': '*/*',
+#         'X-Country': 'ZM',
+#         'X-Currency': 'ZMK',
+#         'Authorization': f'Bearer {accessToken}'
+#     }
 
-    data = {
-        "reference": reference,
-        "subscriber": {
-            "country": "ZM",
-            "currency": "ZMK",
+#     data = {
+#         "reference": reference,
+#         "subscriber": {
+#             "country": "ZM",
+#             "currency": "ZMK",
             
-        }
-    }
+#         }
+#     }
 
 
 #Adds product + option for {addons} if not given to cart 
