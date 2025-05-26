@@ -26,9 +26,9 @@ ALLOWED_HOSTS = ['nyamix.up.railway.app', 'localhost', '127.0.0.1']
 # Application definition
 INSTALLED_APPS = [
     # Django apps
+    'django.contrib.contenttypes',
     'django.contrib.admin',
     'django.contrib.auth',
-    'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
