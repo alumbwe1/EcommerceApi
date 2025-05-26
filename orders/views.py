@@ -3,11 +3,9 @@ from django.db.models import Count, Sum, Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-
-from posts.views import DeliveryBoyEarnings
-from .models import Order,OrderItem
-from .serializers import OrderSerializer, OrderItemSerializer
-from posts.models import Product,DeliveryBoy, Brand
+from .models import Order
+from .serializers import OrderSerializer
+from posts.models import DeliveryBoy, Brand
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 

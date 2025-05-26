@@ -43,7 +43,7 @@ STRIPE_PUBLISHABLE_KEY = 'pk_test_51QFbb1D0Gl6xIvWFKgWl3OtWOLcdRHmqVxk2wKDC4q0R3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['10.0.2.2','localhost', '192.168.101.145','192.168.202.145','127.0.0.1']
+ALLOWED_HOSTS = ['10.0.2.2','localhost', '192.168.101.145', 'https://nyamix.onrender.com/','192.168.202.145','127.0.0.1']
 
 # Allow up to 50 MB uploads (adjust if needed)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB in bytes
