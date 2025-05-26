@@ -1,5 +1,3 @@
-from enum import unique
-from typing import override
 from django.db import models
 from django.contrib.auth.models import User # type: ignore
 from posts.models import Product, Brand
