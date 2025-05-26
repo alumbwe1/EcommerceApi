@@ -97,6 +97,13 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:8000',         # if you're using this locally
+    'http://localhost:8000',         # optional
+    'https://nyamix.up.railway.app',        # if deployed
+]
+
+
 ROOT_URLCONF = 'googlelogin.urls'
 
 MIDDLEWARE = [
