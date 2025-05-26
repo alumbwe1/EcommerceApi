@@ -12,28 +12,45 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+from pathlib import Path
+from django.core.wsgi import get_wsgi_application
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'api.settings')
-application = get_wsgi_application()
+load_dotenv()
+
+
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-#Load environment variables
-load_dotenv()
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+#Lenco Configurations
+Lenco_CLIENT_ID = os.getenv('Lenco_CLIENT_ID')
+Lenco_CLIENT_SECRET = os.getenv('Lenco_CLIENT_SECRET')
+Lenco_AUTH_URL = os.getenv('Lenco_AUTH_URL')
+Lenco_BASE_URL = os.getenv('Lenco_BASE_URL')
+Lenco_PAYMENT_URL = os.getenv('Lenco_PAYMENT_URL')
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+#Airtel Configurations
+AIRTEL_CLIENT_ID = os.getenv('AIRTEL_CLIENT_ID')
+AIRTEL_CLIENT_SECRET = os.getenv('AIRTEL_CLIENT_SECRET')
+AIRTEL_AUTH_URL = os.getenv('AIRTEL_AUTH_URL')
+AIRTEL_BASE_URL = os.getenv('AIRTEL_BASE_URL')
+AIRTEL_PAYMENT_URL = os.getenv('AIRTEL_PAYMENT_URL')
+# settings.py
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
-DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
+DEBUG = False
 
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', ['10.0.2.2','localhost', '192.168.202.145','127.0.0.1']).split(',')
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS').split(',')
 
 # Allow up to 50 MB uploads (adjust if needed)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB in bytes
@@ -86,12 +103,9 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
+     'allauth.account.middleware.AccountMiddleware',
     #'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -181,6 +195,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -193,25 +209,10 @@ AUTHENTICATION_BACKENDS = (
 )
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-
-# Stripe
-STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
-STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
-
-
-# Lenco/Airtel Money
-Lenco_CLIENT_ID = os.getenv('Lenco_CLIENT_ID')
-Lenco_CLIENT_SECRET = os.getenv('Lenco_CLIENT_SECRET')
-Lenco_AUTH_URL = os.getenv('Lenco_AUTH_URL')
-Lenco_BASE_URL = os.getenv('Lenco_BASE_URL')
-Lenco_PAYMENT_URL = os.getenv('Lenco_PAYMENT_URL')
-
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 REST_FRAMEWORK = {
