@@ -3,11 +3,17 @@ from pathlib import Path
 from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials
+from django.core.wsgi import get_wsgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'api.settings')
+
+application = get_wsgi_application()
 
 # Load environment variables
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'unsafe-dev-key')
