@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from cloudinary.models import CloudinaryField
 
 # Category model
 
@@ -9,7 +10,7 @@ from django.contrib.auth.models import User
 class Category(models.Model):
     #user = models.ForeignKey(User,on_delete=models.CASCADE, default=get_default_user)
     title = models.CharField(max_length=255, unique=True)
-    image = models.ImageField(upload_to='category_images/', blank=False) 
+    image = CloudinaryField('category_images', blank=False) 
     brands = models.ManyToManyField('Brand', related_name='categories', blank=True) 
 
     def __str__(self):
@@ -36,7 +37,7 @@ class Brand(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='brands', )  
     title = models.CharField(max_length=255, unique=True)
     campus = models.CharField(max_length=155, blank=True)
-    image = models.ImageField(upload_to='brand_images/', blank=False)  
+    image = CloudinaryField('brand_images', blank=False)  
     description = models.TextField(blank=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
@@ -94,7 +95,7 @@ class DeliveryBoy(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=15, unique=True)
-    profile_pic = models.ImageField(upload_to='delivery_boy_pics/', blank=True)
+    profile_pic = CloudinaryField('delivery_boy_pics', blank=True)
     vehicle_type = models.CharField(max_length=100, choices=[('bike', 'Bike'), ('car', 'Car'),('walk','Walk')], default='bike')
     is_online = models.BooleanField(default=False)
 
