@@ -23,6 +23,9 @@ from django.contrib.auth.models import User
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
 
+from cloudinary.uploader import upload, destroy
+from cloudinary.exceptions import Error as CloudinaryError
+
 
 @api_view(['POST'])
 def google_auth(request):
@@ -336,6 +339,8 @@ class DashboardStats(APIView):
             "products_per_brand": products_per_brand,
             "categories_per_brand": categories_per_brand,
         })
+
+#Create or update product
 class CreateOrUpdateProductView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
@@ -356,24 +361,19 @@ class CreateOrUpdateProductView(APIView):
                 return Response({"error": "Product not found or not owned by this brand."}, status=status.HTTP_404_NOT_FOUND)
 
         new_images = request.FILES.getlist('images')
+        image_urls = []
+        image_public_ids = []
 
-        # Handle images
-        if is_update:
-            image_urls = []
-
-            if new_images:
-                # Optionally delete old images from storage
-                for url in product.imageUrls:
+        # Delete old Cloudinary images if updating and new ones are provided
+        if is_update and new_images:
+            if product.imagePublicIds:
+                for public_id in product.imagePublicIds:
                     try:
-                        file_path = url.replace(settings.MEDIA_URL, '')
-                        default_storage.delete(file_path)
+                        destroy(public_id)
                     except Exception:
-                        pass
-            else:
-                image_urls = product.imageUrls
-        else:
-            image_urls = []
+                        pass  # You can log this
 
+        # Upload new images
         if new_images:
             for image in new_images:
                 if not image.name.lower().endswith(('png', 'jpg', 'jpeg')):
@@ -381,8 +381,16 @@ class CreateOrUpdateProductView(APIView):
                 if image.size > 5 * 1024 * 1024:
                     return Response({"error": f"{image.name} exceeds 5MB"}, status=status.HTTP_400_BAD_REQUEST)
 
-                path = default_storage.save(f'products/{brand.id}/{image.name}', ContentFile(image.read()))
-                image_urls.append(default_storage.url(path))
+                try:
+                    result = upload(image)
+                    image_urls.append(result['secure_url'])
+                    image_public_ids.append(result['public_id'])
+                except CloudinaryError as e:
+                    return Response({"error": f"Upload failed for {image.name}: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        elif is_update:
+            image_urls = product.imageUrls or []
+            image_public_ids = product.imagePublicIds or []
 
         if not is_update and not image_urls:
             return Response({"error": "At least one product image is required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -408,15 +416,15 @@ class CreateOrUpdateProductView(APIView):
                         else:
                             setattr(product, field, request.data.get(field))
 
-                # Update image URLs only if new images were provided
                 if new_images:
                     product.imageUrls = image_urls
+                    product.imagePublicIds = image_public_ids
 
                 for json_field in ['addons', 'ingredients', 'dietary_restrictions']:
                     if json_field in request.data:
                         parsed = parse_json_field(json_field)
                         if isinstance(parsed, Response):
-                            return parsed  # Return error if parse failed
+                            return parsed
                         setattr(product, json_field, parsed)
 
                 product.save()
@@ -429,6 +437,7 @@ class CreateOrUpdateProductView(APIView):
                     description=request.data.get('description'),
                     price=request.data.get('price'),
                     imageUrls=image_urls,
+                    imagePublicIds=image_public_ids,
                     rating=request.data.get('rating') or 0,
                     stock=request.data.get('stock') or 0,
                     is_featured=request.data.get('is_featured') in ['true', 'True', True],

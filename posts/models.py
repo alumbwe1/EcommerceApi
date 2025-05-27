@@ -64,6 +64,7 @@ class Product(models.Model):
     is_featured = models.BooleanField(default=False)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.IntegerField()
+    imagePublicIds = models.JSONField(default=list)
     
     # List of ingredients used in the dish
     ingredients = models.JSONField(blank=True, null=True)  
