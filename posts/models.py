@@ -36,7 +36,6 @@ class Campus(models.Model):
 class Brand(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='brands', )  
     title = models.CharField(max_length=255, unique=True)
-    campus = models.CharField(max_length=155, blank=True)
     image = CloudinaryField('brand_images', blank=False)  
     description = models.TextField(blank=True)
     latitude = models.FloatField(null=True, blank=True)
@@ -47,7 +46,7 @@ class Brand(models.Model):
     rating = models.IntegerField(default=0, blank=True)
     discount = models.IntegerField(default=0, blank=True)
     cuisine_types = models.TextField(default="Asian, Chinese, Indian")
-    cover_photo = models.ImageField(upload_to='brand_covers/', blank=True, null=True)  
+    cover_photo = CloudinaryField('brand_covers/', blank=True, null=True)  
     opening_hours = models.CharField(max_length=100, null=True)
     min_delivery_time = models.PositiveIntegerField(help_text="Minimum delivery time in minutes", null=True)  
     max_delivery_time = models.PositiveIntegerField(help_text="Maximum delivery time in minutes", null=True)
