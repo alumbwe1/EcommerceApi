@@ -93,6 +93,8 @@ class Product(models.Model):
 class DeliveryBoy(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
+    nrc_front = CloudinaryField('nrc_pics', blank=True)
+    nrc_back = CloudinaryField('nrc_pics', blank=True)
     phone_number = models.CharField(max_length=15, unique=True)
     profile_pic = CloudinaryField('delivery_boy_pics', blank=True)
     vehicle_type = models.CharField(max_length=100, choices=[('bike', 'Bike'), ('car', 'Car'),('walk','Walk')], default='bike')
