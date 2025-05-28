@@ -15,6 +15,7 @@ urlpatterns = router.urls + [
     path('googleauth/', views.google_auth, name='google-auth'),
     #HomeBrands
     path('homebrands/', views.HomeBrandList.as_view(), name='home_brands'),
+    path('brand/details/', views.BrandDetails.as_view(), name='brand-details'),
     path('categories/', views.CategoryList.as_view(), name='categories'),
     path('brand/', views.BrandList.as_view(), name='Brands'),
     path('categories/home/', views.HomeCategoryList.as_view(), name='categories'),

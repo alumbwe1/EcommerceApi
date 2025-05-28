@@ -96,6 +96,14 @@ class BrandList(generics.ListAPIView):
 
 
 
+class BrandDetails(generics.RetrieveAPIView):
+    """API view that retrieves brand details for the authenticated user."""
+    serializer_class = serializers.BrandSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return models.Brand.objects.get(owner=self.request.user)
+
 class ProductViewSet(viewsets.ModelViewSet):
     """ViewSet for CRUD operations on products."""
     queryset = models.Product.objects.all()
