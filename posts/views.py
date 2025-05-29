@@ -85,7 +85,7 @@ class HomeBrandList(generics.ListAPIView):
     def get_queryset(self):
         queryset = list(models.Brand.objects.all())
         random.shuffle(queryset)
-        return queryset[:20]
+        return queryset[:30]
 
 
 class BrandList(generics.ListAPIView):
@@ -311,6 +311,7 @@ class BrandViewSet(viewsets.ModelViewSet):
         """Return all brands."""
         return models.Brand.objects.all()  
     
+
 
 class DeleveryViewSet(viewsets.ModelViewSet):
     """ViewSet for CRUD operations on delivery boys
