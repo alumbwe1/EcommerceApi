@@ -7,7 +7,7 @@ router = DefaultRouter()
 router.register(r'products', views.ProductViewSet)
 router.register(r'brands', views.BrandViewSet)
 router.register(r'deliveryauth', views.DeliveryBoyViewSet)
-router.register(r'customuser', views.CustomUserViewSet)
+
 
 urlpatterns = router.urls + [
     #Create Product
