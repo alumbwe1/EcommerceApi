@@ -28,6 +28,37 @@ from cloudinary.exceptions import Error as CloudinaryError
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from django.http import JsonResponse
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from rest_framework.decorators import permission_classes
+
+
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def google_delete(request):
+    google_token = request.headers.get('Authorization')
+
+    if not google_token:
+        return JsonResponse({'error': 'Google token required'}, status=400)
+
+    try:
+        id_info = id_token.verify_oauth2_token(google_token, requests.Request())
+        user_email = id_info['email']
+
+        # Find the user
+        user = User.objects.filter(email=user_email).first()
+        if not user:
+            return JsonResponse({'error': 'User not found'}, status=404)
+
+        user.delete()
+        return JsonResponse({'message': 'User deleted successfully'}, status=200)
+
+    except ValueError:
+        return JsonResponse({'error': 'Invalid Google token'}, status=400)
+
 
 
 

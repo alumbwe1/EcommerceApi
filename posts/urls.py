@@ -14,6 +14,7 @@ urlpatterns = router.urls + [
     path('createproduct/', views.CreateOrUpdateProductView.as_view(), name='create-product'),
     #GoogleAunth
     path('googleauth/', views.google_auth, name='google-auth'),
+    path('googledelete/', views.google_delete, name='google-delete'),
     #HomeBrands
     path('homebrands/', views.HomeBrandList.as_view(), name='home_brands'),
     path('brand/details/', views.BrandDetails.as_view(), name='brand-details'),
