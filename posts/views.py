@@ -33,33 +33,32 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from rest_framework.decorators import permission_classes
 from api.settings import GOOGLE_CLIENT_ID
+from django.http import JsonResponse
+from django.db import DatabaseError
+import logging
+
+logger = logging.getLogger(__name__)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def google_delete(request):
-    google_token = request.headers.get('Authorization')
-
-    if not google_token:
-        return JsonResponse({'error': 'Google token required'}, status=400)
-
     try:
-        
-        id_info = id_token.verify_oauth2_token(
-            google_token,
-            requests.Request(),
-            GOOGLE_CLIENT_ID
-        )
-        user_email = id_info['email']
+        user = request.user
 
-        user = User.objects.filter(email=user_email).first()
-        if not user:
-            return JsonResponse({'error': 'User not found'}, status=404)
+        if user is None or not user.is_authenticated:
+            return JsonResponse({'error': 'Authentication required'}, status=401)
 
         user.delete()
         return JsonResponse({'message': 'User deleted successfully'}, status=200)
 
-    except ValueError:
-        return JsonResponse({'error': 'Invalid Google token'}, status=400)
+    except DatabaseError as db_err:
+        logger.error(f'Database error when deleting user {request.user}: {db_err}')
+        return JsonResponse({'error': 'Database error occurred while deleting account'}, status=500)
+
+    except Exception as e:
+        logger.exception(f'Unexpected error during user deletion: {e}')
+        return JsonResponse({'error': 'An unexpected error occurred'}, status=500)
+
 
 
 
