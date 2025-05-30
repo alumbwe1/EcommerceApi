@@ -27,27 +27,8 @@ from cloudinary.uploader import upload, destroy
 from cloudinary.exceptions import Error as CloudinaryError
 from rest_framework.response import Response
 from rest_framework import status
-from djoser.views import UserViewSet
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import action
 
-
-class CustomUserViewSet(UserViewSet):
-    permission_classes = [IsAuthenticated]
-
-    @action(detail=False, methods=['get'], url_path='me')
-    def me(self, request):
-        serializer = self.get_serializer(request.user)
-        return Response(serializer.data)    
-
-    def destroy(self, request, *args, **kwargs):
-        user = self.request.user
-        if user.has_usable_password():
-            current_password = request.data.get("current_password")
-            if not current_password or not user.check_password(current_password):
-                return Response({"detail": "Invalid password."}, status=status.HTTP_400_BAD_REQUEST)
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 #google auth
