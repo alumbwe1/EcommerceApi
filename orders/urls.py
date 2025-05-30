@@ -5,7 +5,8 @@ from .views import (
     UpdateOrderStatusView,
     OrderDetailView,
     CustomerOrdersView,
-    DeliveryBoyStatusView
+    DeliveryBoyStatusView,
+    BrandOrdersView
 )
 
 urlpatterns = [
