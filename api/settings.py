@@ -44,6 +44,7 @@ Lenco_CLIENT_SECRET = os.getenv('Lenco_CLIENT_SECRET')
 Lenco_AUTH_URL = os.getenv('Lenco_AUTH_URL')
 Lenco_BASE_URL = os.getenv('Lenco_BASE_URL')
 Lenco_PAYMENT_URL = os.getenv('Lenco_PAYMENT_URL')
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
 
 #Airtel Configurations
 AIRTEL_CLIENT_ID = os.getenv('AIRTEL_CLIENT_ID')

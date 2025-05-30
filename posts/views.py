@@ -32,8 +32,7 @@ from django.http import JsonResponse
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from rest_framework.decorators import permission_classes
-
-GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
+from api.settings import GOOGLE_CLIENT_ID
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
