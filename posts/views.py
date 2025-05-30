@@ -33,8 +33,7 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from rest_framework.decorators import permission_classes
 
-
-
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
@@ -45,10 +44,14 @@ def google_delete(request):
         return JsonResponse({'error': 'Google token required'}, status=400)
 
     try:
-        id_info = id_token.verify_oauth2_token(google_token, requests.Request())
+        
+        id_info = id_token.verify_oauth2_token(
+            google_token,
+            requests.Request(),
+            GOOGLE_CLIENT_ID
+        )
         user_email = id_info['email']
 
-        # Find the user
         user = User.objects.filter(email=user_email).first()
         if not user:
             return JsonResponse({'error': 'User not found'}, status=404)
@@ -71,7 +74,7 @@ def google_auth(request):
         idinfo = id_token.verify_oauth2_token(
             token,
             requests.Request(),
-            '10585509659-tk8mjrl87tak7b6j5bmq5b67lgc4lhmd.apps.googleusercontent.com'
+            GOOGLE_CLIENT_ID
         )
 
         email = idinfo['email']
