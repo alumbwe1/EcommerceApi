@@ -45,7 +45,7 @@ class Brand(models.Model):
     email = models.EmailField(unique=True, blank=True)
     rating = models.IntegerField(default=0, blank=True)
     discount = models.IntegerField(default=0, blank=True)
-    cuisine_types = models.TextField(default="Asian, Chinese, Indian")
+    cuisine_types = models.TextField(blank=True)
     cover_photo = CloudinaryField('brand_covers/', blank=True, null=True)  
     opening_hours = models.CharField(max_length=100, null=True)
     min_delivery_time = models.PositiveIntegerField(help_text="Minimum delivery time in minutes", null=True)  
