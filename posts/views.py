@@ -27,7 +27,8 @@ from cloudinary.uploader import upload, destroy
 from cloudinary.exceptions import Error as CloudinaryError
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.viewsets import UserViewSet
+from djoser.views import UserViewSet
+from rest_framework.permissions import IsAuthenticated
 
 class CustomUserViewSet(UserViewSet):
     permission_classes = [IsAuthenticated]
