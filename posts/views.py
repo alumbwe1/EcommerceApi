@@ -25,8 +25,26 @@ from rest_framework.authtoken.models import Token
 
 from cloudinary.uploader import upload, destroy
 from cloudinary.exceptions import Error as CloudinaryError
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.viewsets import UserViewSet
 
+class CustomUserViewSet(UserViewSet):
+    permission_classes = [IsAuthenticated]
 
+    def destroy(self, request, *args, **kwargs):
+        user = self.request.user
+
+        # Optional: only enforce password if user has one
+        if user.has_usable_password():
+            current_password = request.data.get("current_password")
+            if not current_password or not user.check_password(current_password):
+                return Response({"detail": "Invalid password."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+#google auth
 @api_view(['POST'])
 def google_auth(request):
     token = request.data.get('token')
