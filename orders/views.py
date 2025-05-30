@@ -131,6 +131,15 @@ class CustomerOrdersView(APIView):
         return Response(serializer.data)
 
 
+class BrandOrdersView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, brand_id):
+        orders = Order.objects.filter(brand_id=brand_id).order_by('-created_at')
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
+
+
 #Online Status view for a delievery personal
 class DeliveryBoyStatusView(APIView):
     permission_classes = [IsAuthenticated]
