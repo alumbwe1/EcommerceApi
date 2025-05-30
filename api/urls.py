@@ -4,16 +4,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
 from django.conf import settings
-from api.views import CustomUserViewSet
-from rest_framework.routers import DefaultRouter
-
-router = DefaultRouter()
-router.register(r'users', CustomUserViewSet)
 
 urlpatterns = [
     path('favicon.ico', RedirectView.as_view(url=settings.STATIC_URL + 'favicon.ico')),
     path('api/v1.0/admin/', admin.site.urls),
-    path('api/v1.0/users/', include(router.urls)),
     path('api/v1.0/cart/', include('cart.urls')),
     path('accounts/', include('allauth.urls')),
     path('api/v1.0/address/', include('extras.urls')),
