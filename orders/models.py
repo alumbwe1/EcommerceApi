@@ -32,7 +32,7 @@ class Order(models.Model):
     ]
 
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
-    instructions = models.TextField(blank=True,default='No instructions given')
+    instructions = models.TextField(blank=True,)
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE, related_name='orders')
     products = models.ManyToManyField(Product, through='OrderItem')
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
