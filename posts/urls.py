@@ -19,6 +19,7 @@ urlpatterns = router.urls + [
     path('homebrands/', views.HomeBrandList.as_view(), name='home_brands'),
     path('brand/details/', views.BrandDetails.as_view(), name='brand-details'),
     path('categories/', views.CategoryList.as_view(), name='categories'),
+    path('check-brand/', views.CheckBrandIfNotRegistered.as_view(), name='check-brand'),
     path('brand/', views.BrandList.as_view(), name='Brands'),
     path('categories/home/', views.HomeCategoryList.as_view(), name='categories'),
     path('<int:product_id>/similar/', views.SimilarProducts.as_view(), name='similar-products'),

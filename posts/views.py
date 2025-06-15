@@ -282,6 +282,25 @@ class DeliveryBoyViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+class CheckBrandIfNotRegistered(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get (self, request, brand):
+        user = request.user
+        in_brand = models.Brand.objects.filter(owner=user, brand_id=brand).exists()
+        return Response ({'in_brand': in_brand}, status=status.HTTP_200_OK)
+
+        
+
+class checkDeliveryBoyIfNotRegistered(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get (self, request, delivery_boy):
+        user = request.user
+        in_delivery_boy = models.DeliveryBoy.objects.filter(user=user, delivery_boy_id=delivery_boy).exists()
+        return Response ({'in_delivery_boy': in_delivery_boy}, status=status.HTTP_200_OK)
+
+
 class CategoriesByBrand(generics.ListAPIView):
     """API view that lists categories associated with a specific brand."""
     serializer_class = serializers.CategorySerializer
