@@ -1,11 +1,16 @@
-from rest_framework.routers import DefaultRouter
-from .views import EventViewSet, TicketTypeViewSet, TicketViewSet, HostTicketViewSet, CategoryViewSet
+from django.urls import path
+from .views import (
+    EventListCreateAPIView,
+    TicketListCreateAPIView,
+    HostTicketListAPIView,
+    TicketTypeListCreateAPIView,
+    CategoryListCreateAPIView,
+)
 
-router = DefaultRouter()
-router.register(r'categories', CategoryViewSet, basename='category')
-router.register(r'events', EventViewSet, basename='event')
-router.register(r'ticket-types', TicketTypeViewSet, basename='ticket-type')
-router.register(r'tickets', TicketViewSet, basename='ticket')
-router.register(r'host-tickets', HostTicketViewSet, basename='host-ticket')
-
-urlpatterns = router.urls
+urlpatterns = [
+    path('categories/', CategoryListCreateAPIView.as_view(), name='category-list-create'),
+    path('events/', EventListCreateAPIView.as_view(), name='event-list-create'),
+    path('ticket-types/', TicketTypeListCreateAPIView.as_view(), name='ticket-type-list-create'),
+    path('tickets/', TicketListCreateAPIView.as_view(), name='ticket-list-create'),
+    path('host-tickets/', HostTicketListAPIView.as_view(), name='host-ticket-list'),
+]

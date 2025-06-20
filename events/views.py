@@ -1,49 +1,51 @@
-from rest_framework import viewsets, permissions
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
 from .models import Event, Ticket, TicketType, Category
 from .serializers import EventSerializer, TicketSerializer, TicketTypeSerializer, CategorySerializer
 
-class EventViewSet(viewsets.ModelViewSet):
-    queryset = Event.objects.all()
+# CATEGORY
+class CategoryListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+# EVENT
+class EventListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = EventSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-class TicketViewSet(viewsets.ModelViewSet):
+    def get_queryset(self):
+        return Event.objects.all()
+
+    def perform_create(self, serializer):
+        serializer.save(host=self.request.user)
+
+# TICKET for logged-in users
+class TicketListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = TicketSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return Ticket.objects.filter(user=self.request.user)
 
-    def perform_update(self, serializer):
-        serializer.save()
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
-class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-class HostTicketViewSet(viewsets.ModelViewSet):
+# HOST TICKET (Only show tickets for events hosted by current user)
+class HostTicketListAPIView(generics.ListAPIView):
     serializer_class = TicketSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return Ticket.objects.filter(event__host=self.request.user)
 
-    def perform_update(self, serializer):
-        serializer.save()
-
-class TicketTypeViewSet(viewsets.ModelViewSet):
+# TICKET TYPE
+class TicketTypeListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = TicketTypeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return TicketType.objects.filter(event__host=self.request.user)
 
-    def perform_update(self, serializer):
+    def perform_create(self, serializer):
         serializer.save()
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()  # This calls the serializer's create method
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
