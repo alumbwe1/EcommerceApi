@@ -9,7 +9,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class TicketTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = TicketType
-        fields = ['name', 'price', 'quantity_available']
+        fields = ['name', 'price', 'quantity_available', 'event']
 
 class EventSerializer(serializers.ModelSerializer):
     ticket_types = TicketTypeSerializer(many=True)

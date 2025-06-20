@@ -41,7 +41,9 @@ class TicketTypeViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save()
-    def create(self, validated_data):
-        event = validated_data['event']
-        ticket_type = TicketType.objects.create(event=event, **validated_data)
-        return ticket_type
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()  # This calls the serializer's create method
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
