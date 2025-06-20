@@ -20,6 +20,8 @@ class Event(models.Model):
     image = CloudinaryField('event_images', blank=False) 
     location = models.CharField(max_length=255)
     date = models.DateTimeField()
+    age_restriction = models.PositiveIntegerField(blank=True, null=True)
+
     
     phone_number = models.CharField(max_length=20)
     TICKET_TYPE_CHOICES = [
