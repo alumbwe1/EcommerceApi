@@ -12,20 +12,31 @@ class TicketTypeSerializer(serializers.ModelSerializer):
         fields = ['name', 'price', 'quantity_available', 'event']
 
 class EventSerializer(serializers.ModelSerializer):
-    ticket_types = TicketTypeSerializer(many=True)
-    category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), source='category', write_only=True)
+    ticket_types = TicketTypeSerializer(many=True, read_only=True)
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        write_only=True
+    )
 
     class Meta:
         model = Event
-        fields = ['id', 'title', 'description', 'location', 'date', 'phone_number', 'ticket_types', 'category']
+        fields = [
+            'id', 'title', 'description', 'location',
+            'date', 'phone_number', 'ticket_types', 'category'
+        ]
         read_only_fields = ['id']
 
     def create(self, validated_data):
-        ticket_types_data = validated_data.pop('ticket_types')
-        event = Event.objects.create(host=self.context['request'].user, **validated_data)
-        for ticket_type in ticket_types_data:
-            TicketType.objects.create(event=event, **ticket_type)
+        request = self.context.get('request')
+        ticket_types_data = self.initial_data.get('ticket_types', [])
+        event = Event.objects.create(host=request.user, **validated_data)
+
+        for ticket_type_data in ticket_types_data:
+            TicketType.objects.create(event=event, **ticket_type_data)
+
         return event
+
+
 
 class TicketSerializer(serializers.ModelSerializer):
     qr_code_url = serializers.SerializerMethodField()
